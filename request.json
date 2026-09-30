@@ -1,0 +1,9 @@
+﻿{
+  "model": "Atria-Dawn-Preview",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hello"
+    }
+  ]
+}
