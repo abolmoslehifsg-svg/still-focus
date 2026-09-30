@@ -29,6 +29,13 @@ const activeTexture = new Map<SoundId, Voice>()
 let activeElement: HTMLAudioElement | null = null
 let activeElementKey: string | null = null
 
+/**
+ * Per-sound gain nodes for the mixer. Each active sound gets its own gain
+ * feeding the master, so sounds can be layered and balanced independently
+ * while one master volume still governs everything.
+ */
+const mixGains = new Map<string, GainNode>()
+
 function ensureContext(): AudioContext {
   if (!ctx) {
     const Ctor =
@@ -59,6 +66,28 @@ export function setMasterVolume(volume: number): void {
   if (masterGain && ctx) {
     masterGain.gain.cancelScheduledValues(ctx.currentTime)
     masterGain.gain.setTargetAtTime(v, ctx.currentTime, 0.08)
+  }
+}
+
+/**
+ * Set the volume of one layered sound. The master gain is unaffected, so the
+ * master volume architecture is preserved on top of the per-sound mix.
+ */
+export function setSoundVolume(id: SoundId, volume: number): void {
+  const v = Math.max(0, Math.min(1, volume))
+  const gain = mixGains.get(id)
+  if (gain && ctx) {
+    gain.gain.cancelScheduledValues(ctx.currentTime)
+    gain.gain.setTargetAtTime(v, ctx.currentTime, 0.12)
+  }
+}
+
+/** Mute one layered sound without losing its volume setting. */
+export function setSoundMuted(id: SoundId, muted: boolean): void {
+  const gain = mixGains.get(id)
+  if (gain && ctx) {
+    gain.gain.cancelScheduledValues(ctx.currentTime)
+    gain.gain.setTargetAtTime(muted ? 0 : 1, ctx.currentTime, 0.12)
   }
 }
 
@@ -112,7 +141,11 @@ function startTexture(id: TextureKind, volume: number): Voice {
   const out = c.createGain()
   out.gain.value = 0
   out.gain.setTargetAtTime(volume, c.currentTime, 0.6)
-  out.connect(masterGain!)
+
+  // Route through this sound's own mix gain so the mixer can fade it
+  // independently of the master volume.
+  const mix = getMixGain(id)
+  out.connect(mix)
 
   const nodes: AudioNode[] = [out]
   const sources: AudioBufferSourceNode[] = []
@@ -377,6 +410,21 @@ function stopAllTextures(): void {
   activeTexture.clear()
 }
 
+/**
+ * Lazily create (or reuse) the per-sound gain that feeds the master bus.
+ * Created once per sound id and left connected for the session lifetime.
+ */
+function getMixGain(id: SoundId): GainNode {
+  let gain = mixGains.get(id)
+  if (!gain) {
+    gain = ensureContext().createGain()
+    gain.gain.value = 1
+    gain.connect(masterGain!)
+    mixGains.set(id, gain)
+  }
+  return gain
+}
+
 export async function playSound(id: SoundId, opts: PlayOptions): Promise<void> {
   await resumeAudio()
   const c = ensureContext()
@@ -398,7 +446,7 @@ export async function playSound(id: SoundId, opts: PlayOptions): Promise<void> {
     activeElementKey = `el:${src}`
     try {
       const node = c.createMediaElementSource(audio)
-      node.connect(masterGain!)
+      node.connect(getMixGain(id))
       elementSources.set(activeElementKey, node)
     } catch {
       /* CORS-restricted media falls back to element-only playback */
@@ -418,6 +466,53 @@ export async function playSound(id: SoundId, opts: PlayOptions): Promise<void> {
   activeTexture.set(id, startTexture(id, opts.volume))
 }
 
+// ---------------------------------------------------------------------------
+// Multi-sound mixing
+// ---------------------------------------------------------------------------
+
+export interface MixEntry {
+  id: SoundId
+  volume: number
+}
+
+/**
+ * Layer several ambient sounds at once.
+ *
+ * Each sound runs through its own mix gain, all feeding the single master
+ * gain — so the master volume architecture is untouched and per-sound
+ * volumes stay independent. Calling this replaces the current mix.
+ */
+export async function playMix(entries: MixEntry[]): Promise<void> {
+  await resumeAudio()
+  stopAllTextures()
+  disconnectActiveElement()
+
+  for (const { id, volume } of entries) {
+    activeTexture.set(id, startTexture(id, volume))
+  }
+}
+
+/** Add or replace a single layered sound without touching the others. */
+export async function addSoundToMix(id: SoundId, volume: number): Promise<void> {
+  await resumeAudio()
+  // If this sound is already layered, fade it to the new volume instead of
+  // restarting it, so toggling is seamless.
+  if (activeTexture.has(id)) {
+    setSoundVolume(id, volume)
+    return
+  }
+  activeTexture.set(id, startTexture(id, volume))
+}
+
+/** Remove one layered sound, leaving the rest of the mix playing. */
+export function removeSoundFromMix(id: SoundId): void {
+  const texture = activeTexture.get(id)
+  if (texture) {
+    texture.stop()
+    activeTexture.delete(id)
+  }
+}
+
 export function stopSound(): void {
   stopAllTextures()
   disconnectActiveElement()
@@ -434,11 +529,7 @@ export function setLoopForUploaded(src: string, loop: boolean): void {
 }
 
 export function stopSpecificSound(id: SoundId): void {
-  const texture = activeTexture.get(id)
-  if (texture) {
-    texture.stop()
-    activeTexture.delete(id)
-  }
+  removeSoundFromMix(id)
 }
 
 /**

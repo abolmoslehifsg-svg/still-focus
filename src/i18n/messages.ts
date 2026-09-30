@@ -30,6 +30,7 @@ const en = {
   'nav.focus': 'Focus',
   'nav.sounds': 'Sounds',
   'nav.about': 'About',
+  'nav.progress': 'Progress',
   'nav.brand': 'Still',
   'nav.openMenu': 'Open menu',
   'nav.closeMenu': 'Close menu',
@@ -58,6 +59,7 @@ const en = {
   'goal.aria': 'Optional focus goal',
   'goal.hint': 'a reward awaits at the end',
   'goal.label': 'Your goal',
+  'timer.finishEarly': 'Finish early',
 
   // Completion bands
   'complete.60.title': 'Well done.',
@@ -166,6 +168,12 @@ const en = {
   'sounds.volume': 'Ambient sound volume',
   'sounds.stop': 'Stop',
   'sounds.play': 'Play',
+  'sounds.master': 'Master',
+  'sounds.mixHint': 'Layer sounds — each has its own volume',
+  'sounds.privacy': 'Your audio stays on your device.',
+  'sounds.muteSound': 'Mute {name}',
+  'sounds.unmuteSound': 'Unmute {name}',
+  'sounds.soundVolume': '{name} volume',
 
   // Ambient sound names
   'sound.rain': 'Rain',
@@ -180,6 +188,30 @@ const en = {
   // About
   'about.developedBy': 'developed by aboll',
 
+  // Progress
+  'progress.title': 'Progress',
+  'progress.thisWeek': 'This week',
+  'progress.today': 'Today',
+  'progress.allTime': 'All time',
+  'progress.sessions': 'sessions',
+  'progress.session': 'session',
+  'progress.dayStreak': 'day streak',
+  'progress.days': 'days',
+  'progress.empty': 'No sessions yet — your first one starts the count.',
+  'progress.recent': 'Recent',
+  'progress.viewAll': 'View all',
+  'progress.less': 'Show less',
+  'progress.clear': 'Clear history',
+  'progress.clearConfirm': 'Clear all focus history? This cannot be undone.',
+  'progress.gained': '+{time} focused',
+  'progress.streakNow': '{count} day streak',
+  'progress.streakNew': 'New streak — {count} day',
+  'progress.streakExtended': '{count} day streak',
+  'progress.untitled': 'Untitled focus',
+  'progress.completedAria': 'Completed session',
+  'progress.partialAria': 'Session ended early',
+  'progress.incomplete': 'ended early',
+
   // Screen reader
   'sr.complete': 'Session complete. Take a breath.',
   'sr.running': 'Focus session running. {minutes} minutes remaining.',
@@ -191,6 +223,7 @@ const fa: Record<StringKey, string> = {
   'nav.focus': 'تمرکز',
   'nav.sounds': 'صداها',
   'nav.about': 'درباره',
+  'nav.progress': 'پیشرفت',
   'nav.brand': 'استیل',
   'nav.openMenu': 'باز کردن منو',
   'nav.closeMenu': 'بستن منو',
@@ -219,6 +252,7 @@ const fa: Record<StringKey, string> = {
   'goal.aria': 'هدف اختیاری تمرکز',
   'goal.hint': 'یه پاداش تهش منتظرته',
   'goal.label': 'هدفت',
+  'timer.finishEarly': 'تمامش کن',
 
   // Completion bands
   'complete.60.title': 'آفرین.',
@@ -327,6 +361,12 @@ const fa: Record<StringKey, string> = {
   'sounds.volume': 'بلندی صدای محیطی',
   'sounds.stop': 'توقف',
   'sounds.play': 'پخش',
+  'sounds.master': 'اصلی',
+  'sounds.mixHint': 'صداها رو ترکیب کن — هر کدوم بلندی خودش رو داره',
+  'sounds.privacy': 'صدای شما روی همون دستگاهت می‌مونه.',
+  'sounds.muteSound': 'بی‌صدا کردن {name}',
+  'sounds.unmuteSound': 'باصدا کردن {name}',
+  'sounds.soundVolume': 'بلندی صدای {name}',
 
   // Ambient sound names
   'sound.rain': 'باران',
@@ -340,6 +380,30 @@ const fa: Record<StringKey, string> = {
 
   // About
   'about.developedBy': 'ساخته‌ی aboll',
+
+  // Progress
+  'progress.title': 'پیشرفت',
+  'progress.thisWeek': 'این هفته',
+  'progress.today': 'امروز',
+  'progress.allTime': 'از اول',
+  'progress.sessions': 'جلسه',
+  'progress.session': 'جلسه',
+  'progress.dayStreak': 'روز پشت سر هم',
+  'progress.days': 'روز',
+  'progress.empty': 'هنوز جلسه‌ای نیست — اولین جلسه‌ت شمارنده رو شروع می‌کنه.',
+  'progress.recent': 'اخیر',
+  'progress.viewAll': 'همه رو ببین',
+  'progress.less': 'کمتر',
+  'progress.clear': 'پاک کردن تاریخچه',
+  'progress.clearConfirm': 'کل تاریخچه پاک بشه؟ دیگه برنمی‌گرده.',
+  'progress.gained': '+{time} تمرکز',
+  'progress.streakNow': '{count} روز پشت سر هم',
+  'progress.streakNew': 'شروعِ زنجیره — {count} روز',
+  'progress.streakExtended': '{count} روز پشت سر هم',
+  'progress.untitled': 'تمرکز بدون عنوان',
+  'progress.completedAria': 'جلسه کامل شد',
+  'progress.partialAria': 'جلسه زودتر تموم شد',
+  'progress.incomplete': 'زودتر تموم شد',
 
   // Screen reader
   'sr.complete': 'جلسه تمام شد. یک نفس عمیق بکش.',

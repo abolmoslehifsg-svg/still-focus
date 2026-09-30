@@ -1,192 +1,114 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import About from './components/About'
 import FocusTimer from './components/FocusTimer'
 import Navigation from './components/Navigation'
+import ProgressPanel from './components/ProgressPanel'
 import SoundPanel from './components/SoundPanel'
 import StaggeredFade from './components/StaggeredFade'
 import VideoBackground from './components/VideoBackground'
-import { I18nContext, type I18nContextValue } from './i18n/context'
-import { LOCALES, translate, type Locale } from './i18n/messages'
-import {
-  playCompletionChime,
-  playSound,
-  resumeAudio,
-  setLoopForUploaded,
-  setMasterVolume,
-  stopSound,
-} from './audio/engine'
-import { DEFAULT_DURATION_MINUTES, MAX_CUSTOM_MINUTES, type SoundId } from './sounds'
+import { I18nContext } from './i18n/context'
+import { useLocale } from './hooks/useLocale'
+import { useFocusTimer } from './hooks/useFocusTimer'
+import { useAudio } from './hooks/useAudio'
+import { useProgress, useSessions } from './hooks/useSessions'
+import { playCompletionChime, resumeAudio } from './audio/engine'
+import { MAX_CUSTOM_MINUTES } from './sounds'
 import { getReward, type Reward } from './rewards'
 
-const TICK_MS = 1000
-
-const STORAGE_KEY = 'still-focus-locale'
-
-function getInitialLocale(): Locale {
-  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-  if (stored === 'en' || stored === 'fa') return stored
-  // Persian-speaking browser? Start in Persian.
-  if (typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('fa')) {
-    return 'fa'
-  }
-  return 'en'
-}
-
 export default function App() {
-  const [locale, setLocale] = useState<Locale>(getInitialLocale)
-  const [duration, setDuration] = useState(DEFAULT_DURATION_MINUTES * 60)
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATION_MINUTES * 60)
-  const [isRunning, setIsRunning] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [selectedSound, setSelectedSound] = useState<SoundId | null>(null)
-  const [playingSound, setPlayingSound] = useState<SoundId | null>(null)
-  const [volume, setVolume] = useState(0.5)
-  const [muted, setMuted] = useState(false)
-  const [showSounds, setShowSounds] = useState(false)
-  const [uploadedAudio, setUploadedAudio] = useState<{ name: string; url: string } | null>(null)
-  const [isPlayingUploaded, setIsPlayingUploaded] = useState(false)
-  const [loopUploaded, setLoopUploaded] = useState(true)
-  const [sessionComplete, setSessionComplete] = useState(false)
+  const { value: i18nValue, locale, t } = useLocale()
+  const { sessions, addSession, clearSessions } = useSessions()
+  const { progress } = useProgress(sessions)
+  const audio = useAudio()
+  const { mix } = audio
+
   const [customMinutes, setCustomMinutes] = useState('')
   const [goal, setGoal] = useState('')
   const [reward, setReward] = useState<Reward | null>(null)
+  const [showSounds, setShowSounds] = useState(false)
 
-  // Keep <html lang> and direction in sync with the active locale so the
-  // whole page flips to RTL for Persian, screen readers included.
-  useEffect(() => {
-    const meta = LOCALES[locale]
-    document.documentElement.lang = locale
-    document.documentElement.dir = meta.dir
-  }, [locale])
+  const streakBeforeRef = useRef(progress.streak)
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, locale)
-    } catch {
-      // Storage may be unavailable (private mode, blocked cookies).
-    }
-  }, [locale])
-
-  const toggleLocale = useCallback(() => {
-    setLocale((prev) => (prev === 'en' ? 'fa' : 'en'))
-  }, [])
-
-  const t = useCallback(
-    (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars),
-    [locale],
+  const recordSession = useCallback(
+    (completed: boolean, planned: number, remaining: number) => {
+      addSession({
+        duration: planned,
+        elapsed: completed ? planned : Math.max(0, planned - remaining),
+        goal: goal.trim(),
+        completed,
+        sounds: mix.map((c) => c.id),
+      })
+    },
+    [addSession, goal, mix],
   )
 
-  const i18nValue = useMemo<I18nContextValue>(
-    () => ({ locale, toggle: toggleLocale, setLocale, t }),
-    [locale, toggleLocale, t],
+  const handleComplete = useCallback(
+    (planned: number, remaining: number) => {
+      streakBeforeRef.current = progress.streak
+      recordSession(true, planned, remaining)
+      setReward(goal.trim() ? getReward(goal) : null)
+      void playCompletionChime(0.6)
+    },
+    [progress.streak, recordSession, goal],
   )
 
-  const intervalRef = useRef<number | null>(null)
-  const endTimeRef = useRef<number | null>(null)
+  // Ending early still records the session — the focused time was real.
+  // Passed to `useFocusTimer` as a separate callback so an early finish is
+  // never also recorded as a completed one.
+  const handleFinishEarly = useCallback(
+    (planned: number, remaining: number) => {
+      streakBeforeRef.current = progress.streak
+      recordSession(false, planned, remaining)
+      setReward(goal.trim() ? getReward(goal) : null)
+    },
+    [progress.streak, recordSession, goal],
+  )
 
-  const clearTimer = useCallback(() => {
-    if (intervalRef.current !== null) {
-      window.clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [])
+  const {
+    duration,
+    timeLeft,
+    isRunning,
+    isPaused,
+    sessionComplete,
+    focused,
+    setDuration,
+    start,
+    pause,
+    resume,
+    reset,
+    finishEarly,
+  } = useFocusTimer(handleComplete, handleFinishEarly)
 
-  // -------------------------------------------------------------------------
-  // Countdown
-  // -------------------------------------------------------------------------
+  const previousRunning = useRef(false)
   useEffect(() => {
-    if (!isRunning) return
+    if (isRunning && !previousRunning.current) void resumeAudio()
+    previousRunning.current = isRunning
+  }, [isRunning])
 
-    clearTimer()
-    intervalRef.current = window.setInterval(() => {
-      if (endTimeRef.current === null) return
-      const remaining = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000))
-      setTimeLeft(remaining)
-
-      if (remaining <= 0) {
-        clearTimer()
-        setIsRunning(false)
-        setIsPaused(false)
-        setSessionComplete(true)
-        // Resolve the reward for the stated goal when the session ends.
-        setReward(goal.trim() ? getReward(goal) : null)
-        endTimeRef.current = null
-      }
-    }, TICK_MS)
-
-    return clearTimer
-  }, [isRunning, clearTimer])
-
-  // -------------------------------------------------------------------------
-  // Completion chime — played once, never an alarm.
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    if (!sessionComplete) return
-    void playCompletionChime(0.6)
-  }, [sessionComplete])
-
-  // -------------------------------------------------------------------------
-  // Volume
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    setMasterVolume(muted ? 0 : volume)
-  }, [volume, muted])
-
-  // -------------------------------------------------------------------------
-  // Cleanup uploaded object URL
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    return () => {
-      if (uploadedAudio) URL.revokeObjectURL(uploadedAudio.url)
-    }
-  }, [uploadedAudio])
-
-  // -------------------------------------------------------------------------
-  // Actions
-  // -------------------------------------------------------------------------
   const handleStart = useCallback(async () => {
     await resumeAudio()
-    setSessionComplete(false)
-    // After completion the clock reads zero, so restore the full duration.
-    const startFrom = timeLeft > 0 ? timeLeft : duration
-    setTimeLeft(startFrom)
-    endTimeRef.current = Date.now() + startFrom * 1000
-    setIsRunning(true)
-    setIsPaused(false)
-  }, [timeLeft, duration])
-  const handlePause = useCallback(() => {
-    clearTimer()
-    setIsRunning(false)
-    setIsPaused(true)
-    endTimeRef.current = null
-  }, [clearTimer])
+    setReward(null)
+    await start()
+  }, [start])
 
   const handleResume = useCallback(async () => {
     await resumeAudio()
-    endTimeRef.current = Date.now() + timeLeft * 1000
-    setIsRunning(true)
-    setIsPaused(false)
-  }, [timeLeft])
+    await resume()
+  }, [resume])
 
   const handleReset = useCallback(() => {
-    clearTimer()
-    setIsRunning(false)
-    setIsPaused(false)
-    setSessionComplete(false)
-    setTimeLeft(duration)
-    endTimeRef.current = null
-  }, [clearTimer, duration])
+    reset()
+    setReward(null)
+  }, [reset])
 
   const handleDuration = useCallback(
     (minutes: number) => {
-      const seconds = minutes * 60
-      setDuration(seconds)
-      setTimeLeft(seconds)
-      setSessionComplete(false)
       setCustomMinutes('')
+      handleReset()
+      setDuration(minutes * 60)
     },
-    [],
+    [handleReset, setDuration],
   )
 
   const handleCustomMinutes = useCallback(
@@ -195,209 +117,120 @@ export default function App() {
       const parsed = parseInt(value, 10)
       if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= MAX_CUSTOM_MINUTES) {
         setDuration(parsed * 60)
-        setTimeLeft(parsed * 60)
-        setSessionComplete(false)
       }
     },
-    [],
+    [setDuration],
   )
-
-  const handleSelectSound = useCallback(
-    async (id: SoundId) => {
-      if (selectedSound === id) {
-        // Same sound selected again → turn it off.
-        stopSound()
-        setSelectedSound(null)
-        setPlayingSound(null)
-        setIsPlayingUploaded(false)
-        return
-      }
-
-      try {
-        await playSound(id, { volume: muted ? 0 : volume })
-        setSelectedSound(id)
-        setPlayingSound(id)
-        setIsPlayingUploaded(false)
-      } catch {
-        // Browser blocked playback (autoplay restrictions). The selection is
-        // remembered; starting a session will retry.
-        setSelectedSound(id)
-        setPlayingSound(null)
-      }
-    },
-    [selectedSound, volume, muted],
-  )
-
-  const handleUpload = useCallback(
-    (file: File) => {
-      // Stop whatever is currently playing before swapping the track,
-      // otherwise the previous audio keeps running in the background.
-      stopSound()
-      if (uploadedAudio) URL.revokeObjectURL(uploadedAudio.url)
-      const url = URL.createObjectURL(file)
-      setUploadedAudio({ name: file.name, url })
-      setIsPlayingUploaded(false)
-      setPlayingSound(null)
-    },
-    [uploadedAudio],
-  )
-
-  const handleToggleUploaded = useCallback(async () => {
-    if (!uploadedAudio) return
-    if (isPlayingUploaded) {
-      stopSound()
-      setIsPlayingUploaded(false)
-      setPlayingSound(null)
-      return
-    }
-
-    try {
-      await playSound('rain', { volume: muted ? 0 : volume, src: uploadedAudio.url, loop: loopUploaded })
-      setIsPlayingUploaded(true)
-      setPlayingSound(null)
-      setSelectedSound(null)
-    } catch {
-      setIsPlayingUploaded(false)
-    }
-  }, [uploadedAudio, isPlayingUploaded, volume, muted, loopUploaded])
-
-  const handleClearUploaded = useCallback(() => {
-    if (uploadedAudio) URL.revokeObjectURL(uploadedAudio.url)
-    if (isPlayingUploaded) stopSound()
-    setUploadedAudio(null)
-    setIsPlayingUploaded(false)
-    setPlayingSound(null)
-  }, [uploadedAudio, isPlayingUploaded])
-
-  // Toggling loop while a track is playing must apply to the live element,
-  // not just the next playback — otherwise the setting silently does nothing.
-  const handleToggleLoop = useCallback(() => {
-    setLoopUploaded((v) => {
-      const next = !v
-      if (uploadedAudio) setLoopForUploaded(uploadedAudio.url, next)
-      return next
-    })
-  }, [uploadedAudio])
-
-  // Ambient sound follows the session lifecycle.
-  const previousRunning = useRef(false)
-  useEffect(() => {
-    if (isRunning && !previousRunning.current && selectedSound && !playingSound) {
-      void playSound(selectedSound, { volume: muted ? 0 : volume }).then(() => {
-        setPlayingSound(selectedSound)
-      })
-    }
-    previousRunning.current = isRunning
-  }, [isRunning, selectedSound, playingSound, volume, muted])
 
   const inFocusMode = isRunning
 
   return (
     <I18nContext.Provider value={i18nValue}>
-    <div className="relative flex min-h-[100vh] min-h-[100dvh] w-full flex-col bg-[#010101]">
-      <VideoBackground active={inFocusMode} />
+      <div className="relative flex min-h-[100vh] min-h-[100dvh] w-full flex-col bg-[#010101]">
+        <VideoBackground active={inFocusMode} />
 
-      <div className="relative z-10 flex min-h-[100vh] min-h-[100dvh] w-full flex-col">
-        <Navigation dimmed={inFocusMode} />
+        <div className="relative z-10 flex min-h-[100vh] min-h-[100dvh] w-full flex-col">
+          <Navigation dimmed={inFocusMode} />
 
-        <main
-          id="focus"
-          className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-12 pt-12 text-center sm:px-8 sm:pt-16 md:pt-24"
-        >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: inFocusMode ? 0 : 1 }}
-            transition={{ duration: 1.4, ease: 'easeInOut' }}
-            className="mb-10 sm:mb-12 md:mb-14"
+          <main
+            id="focus"
+            className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-12 pt-12 text-center sm:px-8 sm:pt-16 md:pt-24"
           >
-            <h1
-              className={
-                'font-garamond font-normal leading-[1.15] text-white ' +
-                // Persian glyphs are larger and denser than Latin caps, so the
-                // hero needs a smaller scale to feel as composed as the English one.
-                (locale === 'fa'
-                  ? 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl'
-                  : 'text-4xl sm:text-6xl md:text-8xl lg:text-9xl')
-              }
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: inFocusMode ? 0 : 1 }}
+              transition={{ duration: 1.4, ease: 'easeInOut' }}
+              className="mb-10 sm:mb-12 md:mb-14"
             >
-              <StaggeredFade text={t('hero.line1')} />
-              <br />
-              <StaggeredFade text={t('hero.line2')} />
-            </h1>
-          </motion.div>
+              <h1
+                className={
+                  'font-garamond font-normal leading-[1.15] text-white ' +
+                  (locale === 'fa'
+                    ? 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl'
+                    : 'text-4xl sm:text-6xl md:text-8xl lg:text-9xl')
+                }
+              >
+                <StaggeredFade text={t('hero.line1')} />
+                <br />
+                <StaggeredFade text={t('hero.line2')} />
+              </h1>
+            </motion.div>
 
-          <motion.p
-            className="mb-12 max-w-xs font-light leading-relaxed text-white/70 text-sm sm:mb-16 sm:max-w-md sm:text-base md:mb-20 md:text-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: inFocusMode ? 0 : 1, y: inFocusMode ? 20 : 0 }}
-            transition={{ duration: 0.8, delay: inFocusMode ? 0 : 1.6 }}
+            <motion.p
+              className="mb-12 max-w-xs font-light leading-relaxed text-white/70 text-sm sm:mb-16 sm:max-w-md sm:text-base md:mb-20 md:text-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: inFocusMode ? 0 : 1, y: inFocusMode ? 20 : 0 }}
+              transition={{ duration: 0.8, delay: inFocusMode ? 0 : 1.6 }}
+            >
+              {t('hero.tagline')}
+            </motion.p>
+
+            <FocusTimer
+              timeLeft={timeLeft}
+              duration={duration}
+              isRunning={isRunning}
+              isPaused={isPaused}
+              sessionComplete={sessionComplete}
+              focused={focused}
+              customMinutes={customMinutes}
+              goal={goal}
+              reward={reward}
+              progress={progress}
+              previousStreak={streakBeforeRef.current}
+              onCustomMinutes={handleCustomMinutes}
+              onGoal={setGoal}
+              onDuration={handleDuration}
+              onStart={handleStart}
+              onPause={pause}
+              onResume={handleResume}
+              onReset={handleReset}
+              onFinishEarly={finishEarly}
+            />
+          </main>
+
+          <motion.div
+            className="relative z-30 flex w-full justify-center px-5 pb-6 sm:justify-end sm:px-8 sm:pb-8 md:pb-10"
+            id="sounds"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2, delay: 1.8 }}
           >
-            {t('hero.tagline')}
-          </motion.p>
+            <SoundPanel
+              open={showSounds}
+              mix={audio.mix}
+              masterVolume={audio.masterVolume}
+              muted={audio.muted}
+              uploadedAudio={audio.uploadedAudio}
+              isPlayingUploaded={audio.isPlayingUploaded}
+              loopUploaded={audio.loopUploaded}
+              onToggle={() => setShowSounds((v) => !v)}
+              onToggleSound={audio.toggleSound}
+              onSoundVolume={audio.setSoundVolume}
+              onToggleSoundMuted={audio.toggleSoundMuted}
+              onMasterVolume={audio.setMasterVolume}
+              onToggleMute={audio.toggleMute}
+              onUpload={audio.upload}
+              onClearUploaded={audio.clearUploaded}
+              onToggleUploaded={audio.toggleUploaded}
+              onToggleLoop={audio.toggleLoop}
+            />
+          </motion.div>
+        </div>
 
-          <FocusTimer
-            timeLeft={timeLeft}
-            duration={duration}
-            isRunning={isRunning}
-            isPaused={isPaused}
-            sessionComplete={sessionComplete}
-            customMinutes={customMinutes}
-            goal={goal}
-            reward={reward}
-            onCustomMinutes={handleCustomMinutes}
-            onGoal={setGoal}
-            onDuration={handleDuration}
-            onStart={handleStart}
-            onPause={handlePause}
-            onResume={handleResume}
-            onReset={handleReset}
-          />
-        </main>
+        <ProgressPanel progress={progress} sessions={sessions} onClear={clearSessions} />
 
-        {/* Sound panel — bottom centre on mobile, bottom right on desktop.
-            The panel floats upward so it never pushes the hero. */}
-        <motion.div
-          className="relative z-30 flex w-full justify-center px-5 pb-6 sm:justify-end sm:px-8 sm:pb-8 md:pb-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, delay: 1.8 }}
-        >
-          <SoundPanel
-            open={showSounds}
-            selectedSound={selectedSound}
-            volume={volume}
-            muted={muted}
-            uploadedAudio={uploadedAudio}
-            isPlayingUploaded={isPlayingUploaded}
-            loopUploaded={loopUploaded}
-            onToggle={() => setShowSounds((v) => !v)}
-            onSelect={handleSelectSound}
-            onVolume={(value) => {
-              setVolume(value)
-              if (value > 0) setMuted(false)
-            }}
-            onToggleMute={() => setMuted((v) => !v)}
-            onUpload={handleUpload}
-            onClearUploaded={handleClearUploaded}
-            onToggleUploaded={handleToggleUploaded}
-            onToggleLoop={handleToggleLoop}
-          />
-        </motion.div>
+        <About />
+
+        <div className="sr-only" aria-live="polite">
+          {sessionComplete
+            ? t('sr.complete')
+            : isRunning
+              ? t('sr.running', { minutes: Math.floor(timeLeft / 60) })
+              : isPaused
+                ? t('sr.paused')
+                : ''}
+        </div>
       </div>
-
-      <About />
-
-      {/* Screen-reader live region for session state */}
-      <div className="sr-only" aria-live="polite">
-        {sessionComplete
-          ? t('sr.complete')
-          : isRunning
-            ? t('sr.running', { minutes: Math.floor(timeLeft / 60) })
-            : isPaused
-              ? t('sr.paused')
-              : ''}
-      </div>
-    </div>
     </I18nContext.Provider>
   )
 }

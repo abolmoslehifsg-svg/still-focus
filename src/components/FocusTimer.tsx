@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Pause, Play, RotateCcw } from 'lucide-react'
+import { Check, Pause, Play, RotateCcw } from 'lucide-react'
 import {
   formatDurationLabel,
   getCompletionMessage,
@@ -8,6 +8,7 @@ import {
 } from '../sounds'
 import type { Reward } from '../rewards'
 import { useI18n } from '../i18n/context'
+import { formatFocusTime, type Progress } from '../hooks/useSessions'
 import ProgressRing from './ProgressRing'
 
 export interface FocusTimerProps {
@@ -16,9 +17,15 @@ export interface FocusTimerProps {
   isRunning: boolean
   isPaused: boolean
   sessionComplete: boolean
+  /** Seconds actually focused in the session that just ended. */
+  focused: number
   customMinutes: string
   goal: string
   reward: Reward | null
+  /** Live progress, so completion can show what the session just earned. */
+  progress: Progress
+  /** Streak before this session, to detect a new/extended streak. */
+  previousStreak: number
   onCustomMinutes: (value: string) => void
   onGoal: (value: string) => void
   onDuration: (minutes: number) => void
@@ -26,6 +33,7 @@ export interface FocusTimerProps {
   onPause: () => void
   onResume: () => void
   onReset: () => void
+  onFinishEarly: () => void
 }
 
 function formatClock(totalSeconds: number): string {
@@ -43,9 +51,12 @@ export default function FocusTimer({
   isRunning,
   isPaused,
   sessionComplete,
+  focused,
   customMinutes,
   goal,
   reward,
+  progress,
+  previousStreak,
   onCustomMinutes,
   onGoal,
   onDuration,
@@ -53,12 +64,14 @@ export default function FocusTimer({
   onPause,
   onResume,
   onReset,
+  onFinishEarly,
 }: FocusTimerProps) {
-  const progress = duration > 0 ? timeLeft / duration : 0
+  const progressFraction = duration > 0 ? timeLeft / duration : 0
   const clock = formatClock(timeLeft)
   const completion = getCompletionMessage(duration)
   const busy = isRunning || isPaused
   const { t } = useI18n()
+  const hasGoal = Boolean(goal.trim())
 
   const primaryLabel = sessionComplete
     ? t('timer.startAgain')
@@ -74,38 +87,82 @@ export default function FocusTimer({
     else onStart()
   }
 
+  const streakDelta = progress.streak - previousStreak
+
   return (
     <div className="relative flex flex-col items-center">
       {/* Completion message */}
       <AnimatePresence>
         {sessionComplete && (
           <motion.div
-            className="absolute -top-20 flex flex-col items-center sm:-top-24"
+            className="absolute -top-16 flex w-full max-w-[320px] flex-col items-center sm:-top-20 sm:max-w-sm"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 1.4, ease: 'easeOut', delay: 0.2 }}
           >
-            <p className="font-garamond text-xl text-white/90 sm:text-2xl">{t(completion.titleKey)}</p>
-            <p className="mt-1 text-[11px] uppercase tracking-[0.3em] text-white/45">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+              {t('timer.complete')}
+            </p>
+            <p className="mt-3 font-garamond text-2xl text-white/90 sm:text-3xl">
+              {t(completion.titleKey)}
+            </p>
+            <p className="mt-1.5 text-[11px] uppercase tracking-[0.3em] text-white/45">
               {t(completion.subtitleKey)}
             </p>
 
-            {goal.trim() && reward && (
-              <motion.div
-                className="mt-6 flex max-w-[300px] flex-col items-center sm:max-w-sm"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, ease: 'easeOut', delay: 0.9 }}
-              >
-                <span className="text-[9px] uppercase tracking-[0.35em] text-white/30">
-                  {t('goal.label')}
-                </span>
+            {/* What was actually accomplished */}
+            <motion.div
+              className="mt-7 flex flex-col items-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2, ease: 'easeOut', delay: 0.7 }}
+            >
+              <span className="font-garamond text-lg text-white/80 tabular-nums sm:text-xl">
+                {formatFocusTime(focused)}
+              </span>
+              {hasGoal && (
                 <span className="mt-2 max-w-[260px] text-balance text-center text-[13px] leading-relaxed text-white/55 sm:text-sm">
                   {goal.trim()}
                 </span>
+              )}
+            </motion.div>
 
-                <div className="mt-5 h-px w-12 bg-white/15" aria-hidden="true" />
+            {/* Progress gained */}
+            <motion.div
+              className="mt-7 flex items-center gap-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2, ease: 'easeOut', delay: 1.0 }}
+            >
+              <span className="text-[11px] uppercase tracking-[0.25em] text-white/45 tabular-nums">
+                {t('progress.gained', { time: formatFocusTime(focused) })}
+              </span>
+              {progress.streak > 0 && (
+                <>
+                  <span className="text-white/20" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-white/45 tabular-nums">
+                    {t(
+                      streakDelta > 0 && previousStreak === 0
+                        ? 'progress.streakNew'
+                        : 'progress.streakExtended',
+                      { count: progress.streak },
+                    )}
+                  </span>
+                </>
+              )}
+            </motion.div>
+
+            {hasGoal && reward && (
+              <motion.div
+                className="mt-7 flex flex-col items-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, ease: 'easeOut', delay: 1.3 }}
+              >
+                <div className="h-px w-12 bg-white/15" aria-hidden="true" />
 
                 <span className="mt-5 font-garamond text-lg text-white/90 sm:text-xl">
                   {t(reward.titleKey)}
@@ -126,14 +183,14 @@ export default function FocusTimer({
         <div
           className="pointer-events-none absolute left-1/2 top-1/2 h-[min(420px,86vw)] w-[min(420px,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-[1200ms] ease-out sm:h-[420px] sm:w-[420px]"
           style={{
-            opacity: isRunning ? 0.22 + 0.28 * progress : 0.12,
+            opacity: isRunning ? 0.22 + 0.28 * progressFraction : 0.12,
             background:
               'radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.16) 46%, rgba(255,255,255,0) 74%)',
           }}
           aria-hidden="true"
         />
 
-        <ProgressRing progress={progress} />
+        <ProgressRing progress={progressFraction} />
 
         <div className="relative flex flex-col items-center">
           <span className="mb-3 text-[10px] uppercase tracking-[0.35em] text-white/35">
@@ -154,6 +211,21 @@ export default function FocusTimer({
           >
             {clock}
           </div>
+
+          {/* The goal stays visible during the session — quietly, under the clock. */}
+          <AnimatePresence>
+            {busy && hasGoal && (
+              <motion.p
+                className="mt-5 max-w-[240px] text-balance text-center text-[12px] leading-relaxed text-white/45 sm:text-[13px]"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 1.0, ease: 'easeOut' }}
+              >
+                {goal.trim()}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -207,6 +279,25 @@ export default function FocusTimer({
           {isRunning ? <Pause size={15} /> : <Play size={15} />}
           {primaryLabel}
         </button>
+
+        {/* Finish the session now, keeping whatever time was focused. */}
+        <AnimatePresence>
+          {busy && (
+            <motion.button
+              type="button"
+              onClick={onFinishEarly}
+              className="liquid-glass flex h-12 items-center gap-2 rounded-full px-5 text-[11px] uppercase tracking-[0.2em] text-white/70 transition-colors duration-300 hover:text-white sm:h-[52px]"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              aria-label={t('timer.finishEarly')}
+            >
+              <Check size={14} />
+              {t('timer.finishEarly')}
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         <button
           type="button"

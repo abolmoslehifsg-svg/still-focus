@@ -12,7 +12,12 @@ interface NavigationProps {
 export default function Navigation({ dimmed }: NavigationProps) {
   const [open, setOpen] = useState(false)
   const { t, locale, toggle } = useI18n()
-  const links = [t('nav.focus'), t('nav.sounds'), t('nav.about')]
+  const links = [
+    { label: t('nav.focus'), href: '#focus' },
+    { label: t('nav.sounds'), href: '#sounds' },
+    { label: t('nav.progress'), href: '#progress' },
+    { label: t('nav.about'), href: '#about' },
+  ]
 
   return (
     <motion.nav
@@ -32,11 +37,11 @@ export default function Navigation({ dimmed }: NavigationProps) {
       <div className="hidden items-center gap-10 md:flex">
         {links.map((link) => (
           <a
-            key={link}
-            href={`#${link.toLowerCase()}`}
+            key={link.href}
+            href={link.href}
             className="text-[11px] uppercase tracking-[0.2em] text-white/80 font-light transition-all duration-300 hover:text-white"
           >
-            {link}
+            {link.label}
           </a>
         ))}
 
@@ -112,8 +117,8 @@ export default function Navigation({ dimmed }: NavigationProps) {
           >
             {links.map((link, i) => (
               <motion.a
-                key={link}
-                href={`#${link.toLowerCase()}`}
+                key={link.href}
+                href={link.href}
                 onClick={() => setOpen(false)}
                 className="text-sm uppercase tracking-[0.2em] text-white/80 font-light transition-colors duration-300 hover:text-white"
                 initial={{ opacity: 0, y: -8 }}
@@ -125,7 +130,7 @@ export default function Navigation({ dimmed }: NavigationProps) {
                   delay: 0.05 + i * 0.06,
                 }}
               >
-                {link}
+                {link.label}
               </motion.a>
             ))}
           </motion.div>
