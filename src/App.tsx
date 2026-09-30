@@ -310,7 +310,16 @@ export default function App() {
             transition={{ duration: 1.4, ease: 'easeInOut' }}
             className="mb-10 sm:mb-12 md:mb-14"
           >
-            <h1 className="font-garamond font-normal leading-[1.08] tracking-tight text-white text-4xl sm:text-6xl md:text-8xl lg:text-9xl">
+            <h1
+              className={
+                'font-garamond font-normal leading-[1.15] text-white ' +
+                // Persian glyphs are larger and denser than Latin caps, so the
+                // hero needs a smaller scale to feel as composed as the English one.
+                (locale === 'fa'
+                  ? 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl'
+                  : 'text-4xl sm:text-6xl md:text-8xl lg:text-9xl')
+              }
+            >
               <StaggeredFade text={t('hero.line1')} />
               <br />
               <StaggeredFade text={t('hero.line2')} />
