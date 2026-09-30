@@ -17,6 +17,23 @@
   src: url('/fonts/EBGaramond-Variable.woff2') format('woff2-variations');
 }
 
+/* Vazirmatn — self-hosted Persian/Arabic font (SIL Open Font Licence 1.1) */
+@font-face {
+  font-family: 'Vazirmatn';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Vazirmatn';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
+}
+
 html,
 body,
 #root {
@@ -39,6 +56,30 @@ body {
 
 .font-garamond {
   font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+}
+
+/* -------------------------------------------------- */
+/* Persian (RTL)                                      */
+/* -------------------------------------------------- */
+html[lang='fa'] body {
+  font-family: 'Vazirmatn', 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html[lang='fa'] .font-garamond {
+  font-family: 'Vazirmatn', 'EB Garamond', 'Garamond', serif;
+  font-weight: 700;
+}
+
+/* Persian script doesn't have letter-spacing or uppercase forms —
+   wide tracking and transforms look broken on it, so neutralise them. */
+html[lang='fa'] * {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+/* Numbers should read left-to-right even inside RTL text. */
+html[lang='fa'] [dir='ltr'] {
+  unicode-bidi: isolate;
 }
 
 /* -------------------------------------------------- */

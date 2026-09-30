@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useI18n } from '../i18n/context'
 
 const TELEGRAM_URL = 'https://t.me/tenmanogod'
 
@@ -6,6 +7,8 @@ const TELEGRAM_URL = 'https://t.me/tenmanogod'
  * Minimal credit block. Deliberately short — no pitch, no filler.
  */
 export default function About() {
+  const { t } = useI18n()
+
   // Browsers (and toolbar popup blockers) can silently swallow a
   // target="_blank" click. Fall back to navigating the current tab so the
   // link always opens *somewhere* instead of doing nothing.
@@ -26,7 +29,7 @@ export default function About() {
     >
       <div className="liquid-glass flex flex-col items-center gap-3 rounded-2xl px-10 py-9 sm:px-16 sm:py-11">
         <h2 className="font-garamond text-2xl font-normal text-white sm:text-3xl">
-          developed by aboll
+          {t('about.developedBy')}
         </h2>
 
         <a

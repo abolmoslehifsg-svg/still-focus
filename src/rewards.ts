@@ -11,85 +11,87 @@
  */
 
 export interface Reward {
-  title: string
-  note: string
+  /** i18n key for the reward title, e.g. 'reward.general.0.title' */
+  titleKey: string
+  /** i18n key for the reward note, e.g. 'reward.general.0.note' */
+  noteKey: string
 }
 
 const KEYWORD_REWARDS: { keywords: string[]; rewards: Reward[] }[] = [
   {
     keywords: ['study', 'exam', 'learn', 'course', 'lesson', 'school', 'university', 'test'],
     rewards: [
-      { title: 'Knowledge earned.', note: 'Every page is now yours' },
-      { title: 'Sharper than before.', note: 'That effort compounds' },
-      { title: 'Well studied.', note: 'Rest is part of learning' },
+      { titleKey: 'reward.study.0.title', noteKey: 'reward.study.0.note' },
+      { titleKey: 'reward.study.1.title', noteKey: 'reward.study.1.note' },
+      { titleKey: 'reward.study.2.title', noteKey: 'reward.study.2.note' },
     ],
   },
   {
     keywords: ['code', 'program', 'bug', 'feature', 'app', 'software', 'dev', 'build', 'ship'],
     rewards: [
-      { title: 'Shipped in silence.', note: 'The work speaks now' },
-      { title: 'One less bug.', note: 'Momentum is a feature' },
-      { title: 'Deep work, done.', note: 'Compile your thoughts' },
+      { titleKey: 'reward.code.0.title', noteKey: 'reward.code.0.note' },
+      { titleKey: 'reward.code.1.title', noteKey: 'reward.code.1.note' },
+      { titleKey: 'reward.code.2.title', noteKey: 'reward.code.2.note' },
     ],
   },
   {
     keywords: ['write', 'writing', 'book', 'essay', 'blog', 'story', 'novel', 'poem', 'journal'],
     rewards: [
-      { title: 'Words well spent.', note: 'The page remembers' },
-      { title: 'A voice, steady.', note: 'Keep the sentence close' },
-      { title: 'Written, not wished.', note: 'That is the whole secret' },
+      { titleKey: 'reward.write.0.title', noteKey: 'reward.write.0.note' },
+      { titleKey: 'reward.write.1.title', noteKey: 'reward.write.1.note' },
+      { titleKey: 'reward.write.2.title', noteKey: 'reward.write.2.note' },
     ],
   },
   {
     keywords: ['read', 'reading', 'book'],
     rewards: [
-      { title: 'Quietly further.', note: 'Stories are now yours' },
-      { title: 'One chapter closer.', note: 'Let it settle' },
+      { titleKey: 'reward.read.0.title', noteKey: 'reward.read.0.note' },
+      { titleKey: 'reward.read.1.title', noteKey: 'reward.read.1.note' },
     ],
   },
   {
     keywords: ['meditate', 'meditation', 'breathe', 'breath', 'calm', 'mindful', 'still'],
     rewards: [
-      { title: 'Stillness found.', note: 'Carry it with you' },
-      { title: 'You arrived.', note: 'That is the practice' },
-      { title: 'Calm, kept.', note: 'Return whenever you need' },
+      { titleKey: 'reward.meditate.0.title', noteKey: 'reward.meditate.0.note' },
+      { titleKey: 'reward.meditate.1.title', noteKey: 'reward.meditate.1.note' },
+      { titleKey: 'reward.meditate.2.title', noteKey: 'reward.meditate.2.note' },
     ],
   },
   {
     keywords: ['gym', 'workout', 'exercise', 'run', 'running', 'fitness', 'train', 'body', 'yoga'],
     rewards: [
-      { title: 'Stronger today.', note: 'Your body keeps the score' },
-      { title: 'Earned, not given.', note: 'Hydrate and rest' },
-      { title: 'One rep at a time.', note: 'Consistency wins' },
+      { titleKey: 'reward.gym.0.title', noteKey: 'reward.gym.0.note' },
+      { titleKey: 'reward.gym.1.title', noteKey: 'reward.gym.1.note' },
+      { titleKey: 'reward.gym.2.title', noteKey: 'reward.gym.2.note' },
     ],
   },
   {
     keywords: ['draw', 'drawing', 'paint', 'painting', 'art', 'design', 'sketch', 'create', 'music', 'song', 'play', 'compose'],
     rewards: [
-      { title: 'Something exists now.', note: 'That was the point' },
-      { title: 'Made, not planned.', note: 'Let it breathe' },
-      { title: 'The blank page lost.', note: 'Courage, in colour' },
+      { titleKey: 'reward.art.0.title', noteKey: 'reward.art.0.note' },
+      { titleKey: 'reward.art.1.title', noteKey: 'reward.art.1.note' },
+      { titleKey: 'reward.art.2.title', noteKey: 'reward.art.2.note' },
     ],
   },
   {
     keywords: ['work', 'job', 'project', 'task', 'deadline', 'client', 'meeting', 'email', 'report', 'plan'],
     rewards: [
-      { title: 'The list just shrank.', note: 'Close the laptop fully' },
-      { title: 'Handled.', note: 'Tomorrow will wait' },
-      { title: 'Professional, quiet, done.', note: 'Take the win' },
+      { titleKey: 'reward.work.0.title', noteKey: 'reward.work.0.note' },
+      { titleKey: 'reward.work.1.title', noteKey: 'reward.work.1.note' },
+      { titleKey: 'reward.work.2.title', noteKey: 'reward.work.2.note' },
     ],
   },
 ]
 
 const GENERAL_REWARDS: Reward[] = [
-  { title: 'You kept your word.', note: 'That is worth something' },
-  { title: 'One promise, kept.', note: 'Build on it tomorrow' },
-  { title: 'The noise lost today.', note: 'You did not' },
-  { title: 'Present for the whole thing.', note: 'Rare, these days' },
-  { title: 'Quietly, you showed up.', note: 'And finished' },
-  { title: 'Time well spent.', note: 'Take a breath' },
-  { title: 'That was real focus.', note: 'Protect it' },
-  { title: 'Small win, real win.', note: 'Stack them up' },
+  { titleKey: 'reward.general.0.title', noteKey: 'reward.general.0.note' },
+  { titleKey: 'reward.general.1.title', noteKey: 'reward.general.1.note' },
+  { titleKey: 'reward.general.2.title', noteKey: 'reward.general.2.note' },
+  { titleKey: 'reward.general.3.title', noteKey: 'reward.general.3.note' },
+  { titleKey: 'reward.general.4.title', noteKey: 'reward.general.4.note' },
+  { titleKey: 'reward.general.5.title', noteKey: 'reward.general.5.note' },
+  { titleKey: 'reward.general.6.title', noteKey: 'reward.general.6.note' },
+  { titleKey: 'reward.general.7.title', noteKey: 'reward.general.7.note' },
 ]
 
 /** Deterministic 32-bit hash (FNV-1a). Same goal → same reward, always. */

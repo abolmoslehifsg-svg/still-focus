@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import About from './components/About'
 import FocusTimer from './components/FocusTimer'
@@ -6,6 +6,8 @@ import Navigation from './components/Navigation'
 import SoundPanel from './components/SoundPanel'
 import StaggeredFade from './components/StaggeredFade'
 import VideoBackground from './components/VideoBackground'
+import { I18nContext, type I18nContextValue } from './i18n/context'
+import { LOCALES, translate, type Locale } from './i18n/messages'
 import {
   playCompletionChime,
   playSound,
@@ -19,7 +21,20 @@ import { getReward, type Reward } from './rewards'
 
 const TICK_MS = 1000
 
+const STORAGE_KEY = 'still-focus-locale'
+
+function getInitialLocale(): Locale {
+  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
+  if (stored === 'en' || stored === 'fa') return stored
+  // Persian-speaking browser? Start in Persian.
+  if (typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('fa')) {
+    return 'fa'
+  }
+  return 'en'
+}
+
 export default function App() {
+  const [locale, setLocale] = useState<Locale>(getInitialLocale)
   const [duration, setDuration] = useState(DEFAULT_DURATION_MINUTES * 60)
   const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATION_MINUTES * 60)
   const [isRunning, setIsRunning] = useState(false)
@@ -36,6 +51,36 @@ export default function App() {
   const [customMinutes, setCustomMinutes] = useState('')
   const [goal, setGoal] = useState('')
   const [reward, setReward] = useState<Reward | null>(null)
+
+  // Keep <html lang> and direction in sync with the active locale so the
+  // whole page flips to RTL for Persian, screen readers included.
+  useEffect(() => {
+    const meta = LOCALES[locale]
+    document.documentElement.lang = locale
+    document.documentElement.dir = meta.dir
+  }, [locale])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, locale)
+    } catch {
+      // Storage may be unavailable (private mode, blocked cookies).
+    }
+  }, [locale])
+
+  const toggleLocale = useCallback(() => {
+    setLocale((prev) => (prev === 'en' ? 'fa' : 'en'))
+  }, [])
+
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars),
+    [locale],
+  )
+
+  const i18nValue = useMemo<I18nContextValue>(
+    () => ({ locale, toggle: toggleLocale, setLocale, t }),
+    [locale, toggleLocale, t],
+  )
 
   const intervalRef = useRef<number | null>(null)
   const endTimeRef = useRef<number | null>(null)
@@ -248,6 +293,7 @@ export default function App() {
   const inFocusMode = isRunning
 
   return (
+    <I18nContext.Provider value={i18nValue}>
     <div className="relative flex min-h-[100vh] min-h-[100dvh] w-full flex-col bg-[#010101]">
       <VideoBackground active={inFocusMode} />
 
@@ -265,9 +311,9 @@ export default function App() {
             className="mb-10 sm:mb-12 md:mb-14"
           >
             <h1 className="font-garamond font-normal leading-[1.08] tracking-tight text-white text-4xl sm:text-6xl md:text-8xl lg:text-9xl">
-              <StaggeredFade text="ENTER YOUR FOCUS" />
+              <StaggeredFade text={t('hero.line1')} />
               <br />
-              <StaggeredFade text="LEAVE THE NOISE" />
+              <StaggeredFade text={t('hero.line2')} />
             </h1>
           </motion.div>
 
@@ -277,7 +323,7 @@ export default function App() {
             animate={{ opacity: inFocusMode ? 0 : 1, y: inFocusMode ? 20 : 0 }}
             transition={{ duration: 0.8, delay: inFocusMode ? 0 : 1.6 }}
           >
-            A quiet space to focus, breathe, and let the world fade away.
+            {t('hero.tagline')}
           </motion.p>
 
           <FocusTimer
@@ -335,13 +381,14 @@ export default function App() {
       {/* Screen-reader live region for session state */}
       <div className="sr-only" aria-live="polite">
         {sessionComplete
-          ? 'Session complete. Take a breath.'
+          ? t('sr.complete')
           : isRunning
-            ? `Focus session running. ${Math.floor(timeLeft / 60)} minutes remaining.`
+            ? t('sr.running', { minutes: Math.floor(timeLeft / 60) })
             : isPaused
-              ? 'Session paused.'
+              ? t('sr.paused')
               : ''}
       </div>
     </div>
+    </I18nContext.Provider>
   )
 }

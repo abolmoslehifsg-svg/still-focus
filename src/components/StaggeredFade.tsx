@@ -6,11 +6,14 @@ interface StaggeredFadeProps {
 }
 
 /**
- * Splits text into individual characters and reveals them one by one.
+ * Reveals text word by word. Splitting on words (not characters) keeps the
+ * letters inside each word joined — important for cursive scripts like Persian
+ * and Arabic, where isolated letters render in the wrong, disconnected form.
  * Animates only once, when scrolled into view.
  */
 export default function StaggeredFade({ text, className }: StaggeredFadeProps) {
-  const characters = text.split('')
+  // Keep the whitespace between words so the sentence still breathes.
+  const tokens = text.split(/(\s+)/)
 
   return (
     <motion.span
@@ -18,23 +21,29 @@ export default function StaggeredFade({ text, className }: StaggeredFadeProps) {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.5 }}
-      transition={{ staggerChildren: 0.07 }}
+      transition={{ staggerChildren: 0.12, delayChildren: 0.1 }}
       aria-label={text}
     >
-      {characters.map((char, i) => (
-        <motion.span
-          key={`${char}-${i}`}
-          variants={{
-            hidden: { opacity: 0 },
-            show: { opacity: 1, y: 0 },
-          }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="inline-block"
-          aria-hidden="true"
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </motion.span>
-      ))}
+      {tokens.map((token, i) =>
+        /^\s+$/.test(token) ? (
+          <span key={`space-${i}`} aria-hidden="true">
+            {token}
+          </span>
+        ) : (
+          <motion.span
+            key={`${token}-${i}`}
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="inline-block"
+            aria-hidden="true"
+          >
+            {token}
+          </motion.span>
+        ),
+      )}
     </motion.span>
   )
 }

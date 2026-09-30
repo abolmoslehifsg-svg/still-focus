@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
-
-const LINKS = ['Focus', 'Sounds', 'About'] as const
+import { LOCALES } from '../i18n/messages'
+import { useI18n } from '../i18n/context'
 
 interface NavigationProps {
   /** When true the nav fades toward near-zero opacity (focus mode). */
@@ -11,6 +11,8 @@ interface NavigationProps {
 
 export default function Navigation({ dimmed }: NavigationProps) {
   const [open, setOpen] = useState(false)
+  const { t, locale, toggle } = useI18n()
+  const links = [t('nav.focus'), t('nav.sounds'), t('nav.about')]
 
   return (
     <motion.nav
@@ -23,12 +25,12 @@ export default function Navigation({ dimmed }: NavigationProps) {
         href="#focus"
         className="font-garamond text-sm uppercase text-white tracking-[0.25em] font-light transition-opacity duration-300 hover:opacity-100 sm:tracking-[0.3em] md:text-base"
       >
-        Still
+        {t('nav.brand')}
       </a>
 
       {/* Desktop links */}
       <div className="hidden items-center gap-10 md:flex">
-        {LINKS.map((link) => (
+        {links.map((link) => (
           <a
             key={link}
             href={`#${link.toLowerCase()}`}
@@ -37,17 +39,38 @@ export default function Navigation({ dimmed }: NavigationProps) {
             {link}
           </a>
         ))}
+
+        <button
+          type="button"
+          onClick={toggle}
+          className="liquid-glass rounded-full px-3.5 py-1.5 text-[10px] uppercase tracking-[0.2em] text-white/70 transition-colors duration-300 hover:text-white"
+          aria-label={LOCALES[locale === 'en' ? 'fa' : 'en'].name}
+          title={LOCALES[locale === 'en' ? 'fa' : 'en'].name}
+        >
+          {LOCALES[locale === 'en' ? 'fa' : 'en'].label}
+        </button>
       </div>
 
-      {/* Mobile hamburger */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="liquid-glass flex h-10 w-10 items-center justify-center rounded-full text-white/90 md:hidden"
-        aria-label={open ? 'Close menu' : 'Open menu'}
-        aria-expanded={open}
-        aria-controls="mobile-menu"
-      >
+      {/* Mobile: language toggle + hamburger */}
+      <div className="flex items-center gap-2.5 md:hidden">
+        <button
+          type="button"
+          onClick={toggle}
+          className="liquid-glass flex h-10 items-center justify-center rounded-full px-3.5 text-[10px] uppercase tracking-[0.2em] text-white/70 transition-colors duration-300 hover:text-white"
+          aria-label={LOCALES[locale === 'en' ? 'fa' : 'en'].name}
+          title={LOCALES[locale === 'en' ? 'fa' : 'en'].name}
+        >
+          {LOCALES[locale === 'en' ? 'fa' : 'en'].label}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="liquid-glass flex h-10 w-10 items-center justify-center rounded-full text-white/90 md:hidden"
+          aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+        >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
             <motion.span
@@ -74,6 +97,7 @@ export default function Navigation({ dimmed }: NavigationProps) {
           )}
         </AnimatePresence>
       </button>
+      </div>
 
       {/* Mobile menu */}
       <AnimatePresence>
@@ -86,7 +110,7 @@ export default function Navigation({ dimmed }: NavigationProps) {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            {LINKS.map((link, i) => (
+            {links.map((link, i) => (
               <motion.a
                 key={link}
                 href={`#${link.toLowerCase()}`}

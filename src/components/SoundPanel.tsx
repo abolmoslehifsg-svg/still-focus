@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Music, Play, Upload, Volume1, Volume2, VolumeX, X } from 'lucide-react'
 import { AMBIENT_SOUNDS, type SoundId } from '../sounds'
+import { useI18n } from '../i18n/context'
 
 export interface SoundPanelProps {
   open: boolean
@@ -41,6 +42,7 @@ export default function SoundPanel({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const effectiveVolume = muted ? 0 : volume
   const VolumeIcon = muted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2
+  const { t } = useI18n()
 
   return (
     <div className="relative z-30 flex w-full flex-col items-center sm:items-end">
@@ -53,7 +55,7 @@ export default function SoundPanel({
         aria-controls="sound-panel"
       >
         <Music size={14} />
-        Sounds
+        {t('sounds.title')}
         {selectedSound && (
           <span className="ml-1 h-1 w-1 rounded-full bg-white/70" aria-hidden="true" />
         )}
@@ -74,13 +76,13 @@ export default function SoundPanel({
             <div className="overflow-hidden">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40">
-                  Ambient sound
+                  {t('sounds.ambient')}
                 </h2>
                 <button
                   type="button"
                   onClick={onToggle}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition-colors duration-300 hover:text-white"
-                  aria-label="Close sound panel"
+                  aria-label={t('sounds.close')}
                 >
                   <X size={15} />
                 </button>
@@ -101,11 +103,11 @@ export default function SoundPanel({
                         active ? 'text-white' : 'text-white/45 hover:text-white/80',
                       ].join(' ')}
                       aria-pressed={active}
-                      aria-label={`${active ? 'Stop' : 'Play'} ${sound.name}`}
+                      aria-label={t(active ? 'sounds.stop' : 'sounds.play') + ' ' + t(sound.nameKey)}
                     >
                       <Icon size={19} strokeWidth={1.4} />
                       <span className="text-[9px] uppercase tracking-[0.12em] leading-tight text-center">
-                        {sound.name}
+                        {t(sound.nameKey)}
                       </span>
                     </button>
                   )
@@ -120,14 +122,14 @@ export default function SoundPanel({
                       type="button"
                       onClick={onToggleUploaded}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 text-white/80 transition-colors duration-300 hover:text-white"
-                      aria-label={isPlayingUploaded ? 'Pause uploaded track' : 'Play uploaded track'}
+                      aria-label={isPlayingUploaded ? t('sounds.pauseUploaded') : t('sounds.playUploaded')}
                     >
                       {isPlayingUploaded ? <Volume2 size={15} /> : <Play size={15} />}
                     </button>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[11px] text-white/80">{uploadedAudio.name}</p>
                       <p className="text-[9px] uppercase tracking-[0.2em] text-white/35">
-                        Your file · local only
+                        {t('sounds.yourFile')}
                       </p>
                     </div>
                     <button
@@ -138,15 +140,15 @@ export default function SoundPanel({
                         loopUploaded ? 'text-white' : 'text-white/35 hover:text-white/70',
                       ].join(' ')}
                       aria-pressed={loopUploaded}
-                      aria-label="Loop uploaded track"
+                      aria-label={t('sounds.loop')}
                     >
-                      Loop
+                      {t('sounds.loop')}
                     </button>
                     <button
                       type="button"
                       onClick={onClearUploaded}
                       className="flex h-8 w-8 items-center justify-center rounded-full text-white/35 transition-colors duration-300 hover:text-white"
-                      aria-label="Remove uploaded track"
+                      aria-label={t('sounds.remove')}
                     >
                       <X size={14} />
                     </button>
@@ -158,7 +160,7 @@ export default function SoundPanel({
                     className="liquid-glass flex w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[11px] uppercase tracking-[0.2em] text-white/55 transition-colors duration-300 hover:text-white"
                   >
                     <Upload size={14} />
-                    Upload your own sound
+                    {t('sounds.upload')}
                   </button>
                 )}
               </div>
@@ -169,7 +171,7 @@ export default function SoundPanel({
                   type="button"
                   onClick={onToggleMute}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/55 transition-colors duration-300 hover:text-white"
-                  aria-label={muted ? 'Unmute ambient sound' : 'Mute ambient sound'}
+                  aria-label={muted ? t('sounds.unmute') : t('sounds.mute')}
                   aria-pressed={muted}
                 >
                   <VolumeIcon size={16} />
@@ -181,7 +183,7 @@ export default function SoundPanel({
                   value={Math.round(effectiveVolume * 100)}
                   onChange={(e) => onVolume(Number(e.target.value) / 100)}
                   className="minimal-range flex-1"
-                  aria-label="Ambient sound volume"
+                  aria-label={t('sounds.volume')}
                 />
                 <span className="w-9 text-right text-[10px] tabular-nums text-white/40">
                   {Math.round(effectiveVolume * 100)}

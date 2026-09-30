@@ -7,6 +7,7 @@ import {
   QUICK_DURATIONS,
 } from '../sounds'
 import type { Reward } from '../rewards'
+import { useI18n } from '../i18n/context'
 import ProgressRing from './ProgressRing'
 
 export interface FocusTimerProps {
@@ -57,14 +58,15 @@ export default function FocusTimer({
   const clock = formatClock(timeLeft)
   const completion = getCompletionMessage(duration)
   const busy = isRunning || isPaused
+  const { t } = useI18n()
 
   const primaryLabel = sessionComplete
-    ? 'Start again'
+    ? t('timer.startAgain')
     : isRunning
-      ? 'Pause'
+      ? t('timer.pause')
       : isPaused
-        ? 'Resume'
-        : 'Start session'
+        ? t('timer.resume')
+        : t('timer.start')
 
   const handlePrimary = () => {
     if (isRunning) onPause()
@@ -84,27 +86,32 @@ export default function FocusTimer({
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 1.4, ease: 'easeOut', delay: 0.2 }}
           >
-            <p className="font-garamond text-xl text-white/90 sm:text-2xl">{completion.title}</p>
+            <p className="font-garamond text-xl text-white/90 sm:text-2xl">{t(completion.titleKey)}</p>
             <p className="mt-1 text-[11px] uppercase tracking-[0.3em] text-white/45">
-              {completion.subtitle}
+              {t(completion.subtitleKey)}
             </p>
 
             {goal.trim() && reward && (
               <motion.div
-                className="mt-5 flex max-w-[280px] flex-col items-center sm:max-w-xs"
+                className="mt-6 flex max-w-[300px] flex-col items-center sm:max-w-sm"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.2, ease: 'easeOut', delay: 0.9 }}
               >
                 <span className="text-[9px] uppercase tracking-[0.35em] text-white/30">
-                  Your goal
+                  {t('goal.label')}
                 </span>
-                <span className="mt-1.5 text-[12px] italic text-white/55">&ldquo;{goal.trim()}&rdquo;</span>
-                <span className="mt-4 font-garamond text-lg text-white/90 sm:text-xl">
-                  {reward.title}
+                <span className="mt-2 max-w-[260px] text-balance text-center text-[13px] leading-relaxed text-white/55 sm:text-sm">
+                  {goal.trim()}
                 </span>
-                <span className="mt-1 text-[10px] uppercase tracking-[0.25em] text-white/40">
-                  {reward.note}
+
+                <div className="mt-5 h-px w-12 bg-white/15" aria-hidden="true" />
+
+                <span className="mt-5 font-garamond text-lg text-white/90 sm:text-xl">
+                  {t(reward.titleKey)}
+                </span>
+                <span className="mt-1.5 text-[10px] uppercase tracking-[0.25em] text-white/40">
+                  {t(reward.noteKey)}
                 </span>
               </motion.div>
             )}
@@ -130,7 +137,13 @@ export default function FocusTimer({
 
         <div className="relative flex flex-col items-center">
           <span className="mb-3 text-[10px] uppercase tracking-[0.35em] text-white/35">
-            {isRunning ? 'In focus' : isPaused ? 'Paused' : sessionComplete ? 'Complete' : 'Ready'}
+            {isRunning
+              ? t('timer.inFocus')
+              : isPaused
+                ? t('timer.paused')
+                : sessionComplete
+                  ? t('timer.complete')
+                  : t('timer.ready')}
           </span>
 
           <div
@@ -160,7 +173,7 @@ export default function FocusTimer({
                 isRunning || isPaused ? 'cursor-not-allowed opacity-40' : '',
               ].join(' ')}
               aria-pressed={active}
-              aria-label={`${minutes} minute focus session`}
+              aria-label={t('timer.ariaMinutes', { minutes })}
             >
               {formatDurationLabel(minutes)}
             </button>
@@ -177,9 +190,9 @@ export default function FocusTimer({
             disabled={isRunning || isPaused}
             onChange={(e) => onCustomMinutes(e.target.value)}
             className="w-12 bg-transparent text-center text-[11px] uppercase tracking-[0.15em] text-white outline-none [appearance:textfield] disabled:opacity-40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            aria-label="Custom focus duration in minutes"
+            aria-label={t('timer.customAria')}
           />
-          <span className="ml-1 text-[10px] uppercase tracking-[0.2em] text-white/35">min</span>
+          <span className="ml-1 text-[10px] uppercase tracking-[0.2em] text-white/35">{t('timer.min')}</span>
         </div>
       </div>
 
@@ -199,7 +212,7 @@ export default function FocusTimer({
           type="button"
           onClick={onReset}
           className="liquid-glass flex h-12 w-12 items-center justify-center rounded-full text-white/70 transition-colors duration-300 hover:text-white sm:h-[52px] sm:w-[52px]"
-          aria-label="Reset timer"
+          aria-label={t('timer.reset')}
         >
           <RotateCcw size={16} />
         </button>
@@ -221,14 +234,14 @@ export default function FocusTimer({
                 value={goal}
                 onChange={(e) => onGoal(e.target.value)}
                 maxLength={80}
-                placeholder="a goal, optional"
+                placeholder={t('goal.placeholder')}
                 className="w-full bg-transparent text-center text-[11px] uppercase tracking-[0.15em] text-white placeholder:text-white/30 outline-none"
-                aria-label="Optional focus goal"
+                aria-label={t('goal.aria')}
               />
             </div>
             {goal.trim() && (
               <p className="mt-2.5 text-[9px] uppercase tracking-[0.25em] text-white/30">
-                a reward awaits at the end
+                {t('goal.hint')}
               </p>
             )}
           </motion.div>

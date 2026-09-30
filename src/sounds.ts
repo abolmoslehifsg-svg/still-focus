@@ -21,7 +21,8 @@ export type SoundId =
 
 export interface AmbientSound {
   id: SoundId
-  name: string
+  /** i18n key for the sound name, e.g. 'sound.rain' */
+  nameKey: string
   icon: LucideIcon
   /** Audio source. Real URLs can be dropped in here later. */
   src: string
@@ -37,14 +38,14 @@ export interface AmbientSound {
  * interface remains fully functional and demonstrable.
  */
 export const AMBIENT_SOUNDS: AmbientSound[] = [
-  { id: 'rain', name: 'Rain', icon: CloudRain, src: '' },
-  { id: 'fireplace', name: 'Fireplace', icon: Flame, src: '' },
-  { id: 'ocean', name: 'Ocean', icon: Waves, src: '' },
-  { id: 'forest', name: 'Forest', icon: Trees, src: '' },
-  { id: 'train', name: 'Train', icon: TrainFront, src: '' },
-  { id: 'cafe', name: 'Café', icon: Coffee, src: '' },
-  { id: 'white-noise', name: 'White Noise', icon: Volume2, src: '' },
-  { id: 'brown-noise', name: 'Brown Noise', icon: Volume2, src: '' },
+  { id: 'rain', nameKey: 'sound.rain', icon: CloudRain, src: '' },
+  { id: 'fireplace', nameKey: 'sound.fireplace', icon: Flame, src: '' },
+  { id: 'ocean', nameKey: 'sound.ocean', icon: Waves, src: '' },
+  { id: 'forest', nameKey: 'sound.forest', icon: Trees, src: '' },
+  { id: 'train', nameKey: 'sound.train', icon: TrainFront, src: '' },
+  { id: 'cafe', nameKey: 'sound.cafe', icon: Coffee, src: '' },
+  { id: 'white-noise', nameKey: 'sound.white-noise', icon: Volume2, src: '' },
+  { id: 'brown-noise', nameKey: 'sound.brown-noise', icon: Volume2, src: '' },
 ]
 
 /** Quick focus durations, in minutes. */
@@ -64,8 +65,8 @@ export function formatDurationLabel(minutes: number): string {
 }
 
 export interface CompletionMessage {
-  title: string
-  subtitle: string
+  titleKey: string
+  subtitleKey: string
 }
 
 /**
@@ -73,11 +74,11 @@ export interface CompletionMessage {
  * acknowledgement; short ones stay gentle but never dismissive.
  */
 const COMPLETION_BANDS: { minMinutes: number; message: CompletionMessage }[] = [
-  { minMinutes: 60, message: { title: 'Well done.', subtitle: 'Take a breath' } },
-  { minMinutes: 30, message: { title: 'That was real focus.', subtitle: 'Take a breath' } },
-  { minMinutes: 15, message: { title: 'Good session.', subtitle: 'Take a moment' } },
-  { minMinutes: 5, message: { title: 'Nice work.', subtitle: 'Every minute counts' } },
-  { minMinutes: 0, message: { title: 'You showed up.', subtitle: "That's where it starts" } },
+  { minMinutes: 60, message: { titleKey: 'complete.60.title', subtitleKey: 'complete.60.subtitle' } },
+  { minMinutes: 30, message: { titleKey: 'complete.30.title', subtitleKey: 'complete.30.subtitle' } },
+  { minMinutes: 15, message: { titleKey: 'complete.15.title', subtitleKey: 'complete.15.subtitle' } },
+  { minMinutes: 5, message: { titleKey: 'complete.5.title', subtitleKey: 'complete.5.subtitle' } },
+  { minMinutes: 0, message: { titleKey: 'complete.0.title', subtitleKey: 'complete.0.subtitle' } },
 ]
 
 export function getCompletionMessage(durationSeconds: number): CompletionMessage {
