@@ -94,13 +94,13 @@ export function useSessions(): UseSessionsResult {
 // ---------------------------------------------------------------------------
 
 export interface Progress {
-  /** Total focused seconds across all completed sessions. */
+  /** Actual focused seconds, including sessions ended early. */
   totalSeconds: number
   /** Completed session count. */
   totalSessions: number
   /** Focused seconds since local midnight. */
   todaySeconds: number
-  /** Focused seconds in the rolling 7-day window. */
+  /** Actual focused seconds in the rolling 7-day window. */
   weekSeconds: number
   /** Sessions in the rolling 7-day window. */
   weekSessions: number
@@ -145,20 +145,18 @@ export function computeProgress(sessions: FocusSession[]): Progress {
     const ts = Date.parse(s.date)
     if (Number.isNaN(ts)) continue
 
-    // Only fully completed sessions count toward progress and streaks. An
-    // abandoned session is history, not an achievement.
-    if (!s.completed) continue
-
     const focused = Math.max(0, Math.min(s.duration, s.elapsed))
     totalSeconds += focused
-    totalSessions += 1
-
     if (ts >= todayStart) todaySeconds += focused
     if (ts >= weekStart) {
       weekSeconds += focused
-      weekSessions += 1
     }
 
+    // Time actually focused always counts. Session counts and streaks still
+    // require a completed session.
+    if (!s.completed) continue
+    totalSessions += 1
+    if (ts >= weekStart) weekSessions += 1
     days.add(startOfDay(new Date(ts)))
   }
 

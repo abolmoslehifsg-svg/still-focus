@@ -8,7 +8,7 @@ import {
 } from '../sounds'
 import type { Reward } from '../rewards'
 import { useI18n } from '../i18n/context'
-import { formatFocusTime, type Progress } from '../hooks/useSessions'
+import type { Progress } from '../hooks/useSessions'
 import ProgressRing from './ProgressRing'
 
 export interface FocusTimerProps {
@@ -91,91 +91,61 @@ export default function FocusTimer({
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* Completion message */}
-      <AnimatePresence>
-        {sessionComplete && (
-          <motion.div
-            className="absolute -top-16 flex w-full max-w-[320px] flex-col items-center sm:-top-20 sm:max-w-sm"
+      <AnimatePresence mode="wait">
+        {sessionComplete ? (
+          <motion.section
+            key="completion"
+            className="mb-6 flex min-h-[300px] w-full max-w-md flex-col items-center justify-center px-4 text-center sm:mb-8"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 1.4, ease: 'easeOut', delay: 0.2 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            aria-label={t('timer.complete')}
           >
-            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">
               {t('timer.complete')}
             </p>
-            <p className="mt-3 font-garamond text-2xl text-white/90 sm:text-3xl">
+            <h2 className="mt-3 font-garamond text-2xl text-white/90 sm:text-3xl">
               {t(completion.titleKey)}
+            </h2>
+            <p className="mt-1 text-[11px] text-white/45">{t(completion.subtitleKey)}</p>
+            <p className="mt-7 font-garamond text-5xl leading-none text-white tabular-nums sm:text-6xl">
+              {formatClock(focused)}
             </p>
-            <p className="mt-1.5 text-[11px] uppercase tracking-[0.3em] text-white/45">
-              {t(completion.subtitleKey)}
+            <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
+              {t('timer.focusedTime')}
             </p>
-
-            {/* What was actually accomplished */}
-            <motion.div
-              className="mt-7 flex flex-col items-center"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: 'easeOut', delay: 0.7 }}
-            >
-              <span className="font-garamond text-lg text-white/80 tabular-nums sm:text-xl">
-                {formatFocusTime(focused)}
-              </span>
-              {hasGoal && (
-                <span className="mt-2 max-w-[260px] text-balance text-center text-[13px] leading-relaxed text-white/55 sm:text-sm">
-                  {goal.trim()}
-                </span>
-              )}
-            </motion.div>
-
-            {/* Progress gained */}
-            <motion.div
-              className="mt-7 flex items-center gap-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: 'easeOut', delay: 1.0 }}
-            >
-              <span className="text-[11px] uppercase tracking-[0.25em] text-white/45 tabular-nums">
-                {t('progress.gained', { time: formatFocusTime(focused) })}
-              </span>
-              {progress.streak > 0 && (
-                <>
-                  <span className="text-white/20" aria-hidden="true">
-                    ·
-                  </span>
-                  <span className="text-[11px] uppercase tracking-[0.25em] text-white/45 tabular-nums">
-                    {t(
-                      streakDelta > 0 && previousStreak === 0
-                        ? 'progress.streakNew'
-                        : 'progress.streakExtended',
-                      { count: progress.streak },
-                    )}
-                  </span>
-                </>
-              )}
-            </motion.div>
-
-            {hasGoal && reward && (
-              <motion.div
-                className="mt-7 flex flex-col items-center"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, ease: 'easeOut', delay: 1.3 }}
-              >
-                <div className="h-px w-12 bg-white/15" aria-hidden="true" />
-
-                <span className="mt-5 font-garamond text-lg text-white/90 sm:text-xl">
-                  {t(reward.titleKey)}
-                </span>
-                <span className="mt-1.5 text-[10px] uppercase tracking-[0.25em] text-white/40">
-                  {t(reward.noteKey)}
-                </span>
-              </motion.div>
+            {hasGoal && (
+              <p className="mt-5 max-w-[280px] text-balance text-[13px] leading-relaxed text-white/60">
+                {goal.trim()}
+              </p>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+            {progress.streak > 0 && (
+              <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-white/40">
+                {t(
+                  streakDelta > 0 && previousStreak === 0
+                    ? 'progress.streakNew'
+                    : 'progress.streakExtended',
+                  { count: progress.streak },
+                )}
+              </p>
+            )}
+            {hasGoal && reward && (
+              <div className="mt-5 border-t border-white/10 pt-4">
+                <p className="font-garamond text-lg text-white/85">{t(reward.titleKey)}</p>
+                <p className="mt-1 text-[10px] text-white/40">{t(reward.noteKey)}</p>
+              </div>
+            )}
+          </motion.section>
+        ) : (
+          <motion.div
+            key="timer"
+            className="flex flex-col items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+          >
       <div className="relative flex items-center justify-center">
         {/* Halo — same centre and same box as the progress ring. The source
             video carries a bright "breathing" blob here; this soft spotlight
@@ -228,9 +198,12 @@ export default function FocusTimer({
           </AnimatePresence>
         </div>
       </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Duration options */}
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+      {!sessionComplete && <div className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         {QUICK_DURATIONS.map((minutes) => {
           const active = duration === minutes * 60 && !sessionComplete
           return (
@@ -266,7 +239,7 @@ export default function FocusTimer({
           />
           <span className="ml-1 text-[10px] uppercase tracking-[0.2em] text-white/35">{t('timer.min')}</span>
         </div>
-      </div>
+      </div>}
 
       {/* Controls */}
       <div className="mt-8 flex items-center gap-3 sm:gap-4">
@@ -311,7 +284,7 @@ export default function FocusTimer({
 
       {/* Optional intention — shown only when a session is not running. */}
       <AnimatePresence>
-        {!busy && (
+        {!busy && !sessionComplete && (
           <motion.div
             className="mt-7 flex w-full max-w-[280px] flex-col items-center sm:max-w-xs"
             initial={{ opacity: 0, y: 8 }}

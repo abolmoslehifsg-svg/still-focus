@@ -88,6 +88,7 @@ export default function App() {
 
   const handleStart = useCallback(async () => {
     await resumeAudio()
+    setShowSounds(false)
     setReward(null)
     await start()
   }, [start])
@@ -122,7 +123,7 @@ export default function App() {
     [setDuration],
   )
 
-  const inFocusMode = isRunning
+  const inFocusMode = isRunning || isPaused
 
   return (
     <I18nContext.Provider value={i18nValue}>
@@ -134,13 +135,16 @@ export default function App() {
 
           <main
             id="focus"
-            className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-12 pt-12 text-center sm:px-8 sm:pt-16 md:pt-24"
+            className={`relative z-10 flex flex-1 flex-col items-center justify-center px-5 text-center transition-[padding] duration-1000 ease-in-out sm:px-8 ${inFocusMode ? 'py-6 sm:py-8 md:py-10' : 'pb-12 pt-12 sm:pt-16 md:pt-24'}`}
           >
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: inFocusMode ? 0 : 1 }}
-              transition={{ duration: 1.4, ease: 'easeInOut' }}
-              className="mb-10 sm:mb-12 md:mb-14"
+              className="overflow-hidden"
+              animate={{
+                opacity: inFocusMode ? 0 : 1,
+                height: inFocusMode ? 0 : 'auto',
+                marginBottom: inFocusMode ? 0 : 56,
+              }}
             >
               <h1
                 className={
@@ -157,10 +161,15 @@ export default function App() {
             </motion.div>
 
             <motion.p
-              className="mb-12 max-w-xs font-light leading-relaxed text-white/70 text-sm sm:mb-16 sm:max-w-md sm:text-base md:mb-20 md:text-lg"
+              className="max-w-xs overflow-hidden font-light leading-relaxed text-white/70 text-sm sm:max-w-md sm:text-base md:text-lg"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: inFocusMode ? 0 : 1, y: inFocusMode ? 20 : 0 }}
-              transition={{ duration: 0.8, delay: inFocusMode ? 0 : 1.6 }}
+              animate={{
+                opacity: inFocusMode ? 0 : 1,
+                y: inFocusMode ? 12 : 0,
+                height: inFocusMode ? 0 : 'auto',
+                marginBottom: inFocusMode ? 0 : 80,
+              }}
+              transition={{ duration: 0.8, delay: inFocusMode ? 0 : 0.4 }}
             >
               {t('hero.tagline')}
             </motion.p>
@@ -192,8 +201,8 @@ export default function App() {
             className="relative z-30 flex w-full justify-center px-5 pb-6 sm:justify-end sm:px-8 sm:pb-8 md:pb-10"
             id="sounds"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, delay: 1.8 }}
+            animate={{ opacity: inFocusMode ? 0.12 : 1, y: inFocusMode ? 8 : 0 }}
+            transition={{ duration: 0.9, delay: inFocusMode ? 0 : 0.4 }}
           >
             <SoundPanel
               open={showSounds}

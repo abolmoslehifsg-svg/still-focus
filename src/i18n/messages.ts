@@ -60,6 +60,7 @@ const en = {
   'goal.hint': 'a reward awaits at the end',
   'goal.label': 'Your goal',
   'timer.finishEarly': 'Finish early',
+  'timer.focusedTime': 'time focused',
 
   // Completion bands
   'complete.60.title': 'Well done.',
@@ -192,6 +193,11 @@ const en = {
   'progress.title': 'Progress',
   'progress.thisWeek': 'This week',
   'progress.today': 'Today',
+  'progress.dailyGoal': 'Daily focus goal',
+  'progress.lowerGoal': 'Lower daily focus goal',
+  'progress.raiseGoal': 'Raise daily focus goal',
+  'progress.minutesShort': 'min',
+  'progress.hoursShort': 'hr',
   'progress.allTime': 'All time',
   'progress.sessions': 'sessions',
   'progress.session': 'session',
@@ -253,6 +259,7 @@ const fa: Record<StringKey, string> = {
   'goal.hint': 'یه پاداش تهش منتظرته',
   'goal.label': 'هدفت',
   'timer.finishEarly': 'تمامش کن',
+  'timer.focusedTime': 'زمان تمرکز',
 
   // Completion bands
   'complete.60.title': 'آفرین.',
@@ -385,6 +392,11 @@ const fa: Record<StringKey, string> = {
   'progress.title': 'پیشرفت',
   'progress.thisWeek': 'این هفته',
   'progress.today': 'امروز',
+  'progress.dailyGoal': 'هدف روزانه‌ی تمرکز',
+  'progress.lowerGoal': 'کم کردن هدف روزانه',
+  'progress.raiseGoal': 'زیاد کردن هدف روزانه',
+  'progress.minutesShort': 'دقیقه',
+  'progress.hoursShort': 'ساعت',
   'progress.allTime': 'از اول',
   'progress.sessions': 'جلسه',
   'progress.session': 'جلسه',

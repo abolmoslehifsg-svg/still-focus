@@ -22,8 +22,9 @@ export default function Navigation({ dimmed }: NavigationProps) {
   return (
     <motion.nav
       className="relative z-20 flex w-full items-center justify-between px-5 py-5 sm:px-8 md:py-7"
-      animate={{ opacity: dimmed ? 0.08 : 1 }}
-      transition={{ duration: 1.6, ease: 'easeInOut' }}
+      animate={{ opacity: dimmed ? 0.035 : 1 }}
+      transition={{ duration: 1, ease: 'easeInOut' }}
+      style={{ pointerEvents: dimmed ? 'none' : 'auto' }}
       aria-label="Main"
     >
       <a

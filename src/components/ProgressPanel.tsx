@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Minus, Plus } from 'lucide-react'
 import { useI18n } from '../i18n/context'
+import { loadStorage, saveStorage } from '../lib/storage'
 import {
   formatFocusTime,
   formatSessionDay,
@@ -15,6 +17,11 @@ interface ProgressPanelProps {
   onClear: () => void
 }
 
+const DAILY_GOAL_KEY = 'still-focus-daily-goal-minutes'
+const MIN_DAILY_GOAL = 15
+const MAX_DAILY_GOAL = 480
+const DAILY_GOAL_STEP = 15
+
 /**
  * A quiet record of time spent here.
  *
@@ -25,9 +32,34 @@ interface ProgressPanelProps {
 export default function ProgressPanel({ progress, sessions, onClear }: ProgressPanelProps) {
   const { t } = useI18n()
   const [expanded, setExpanded] = useState(false)
+  const [dailyGoalMinutes, setDailyGoalMinutes] = useState(() => {
+    const saved = loadStorage<number>(DAILY_GOAL_KEY, 60)
+    return Number.isFinite(saved)
+      ? Math.min(MAX_DAILY_GOAL, Math.max(MIN_DAILY_GOAL, Math.round(saved / DAILY_GOAL_STEP) * DAILY_GOAL_STEP))
+      : 60
+  })
+
+  useEffect(() => saveStorage(DAILY_GOAL_KEY, dailyGoalMinutes), [dailyGoalMinutes])
 
   const recent = expanded ? sessions.slice(0, 12) : sessions.slice(0, 3)
   const hasHistory = sessions.length > 0
+  const dailyGoalSeconds = dailyGoalMinutes * 60
+  const dailyGoalProgress = Math.min(100, (progress.todaySeconds / dailyGoalSeconds) * 100)
+  const formatDailyTime = (seconds: number) => {
+    const totalMinutes = Math.max(0, Math.round(seconds / 60))
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    if (hours > 0) {
+      return `${hours} ${t('progress.hoursShort')} ${minutes} ${t('progress.minutesShort')}`
+    }
+    return `${totalMinutes} ${t('progress.minutesShort')}`
+  }
+
+  const adjustDailyGoal = (amount: number) => {
+    setDailyGoalMinutes((current) =>
+      Math.min(MAX_DAILY_GOAL, Math.max(MIN_DAILY_GOAL, current + amount)),
+    )
+  }
 
   return (
     <motion.section
@@ -75,6 +107,53 @@ export default function ProgressPanel({ progress, sessions, onClear }: ProgressP
           value={String(progress.streak)}
           sub={t('progress.dayStreak')}
         />
+      </div>
+
+      <div className="mt-9 w-full max-w-md text-start">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-white/40">
+            {t('progress.dailyGoal')}
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => adjustDailyGoal(-DAILY_GOAL_STEP)}
+              disabled={dailyGoalMinutes <= MIN_DAILY_GOAL}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-white/50 transition-colors hover:text-white disabled:opacity-20"
+              aria-label={t('progress.lowerGoal')}
+              title={t('progress.lowerGoal')}
+            >
+              <Minus size={13} />
+            </button>
+            <span className="min-w-[4.5rem] text-center text-[10px] tabular-nums text-white/60">
+              {formatDailyTime(progress.todaySeconds)} / {dailyGoalMinutes} {t('progress.minutesShort')}
+            </span>
+            <button
+              type="button"
+              onClick={() => adjustDailyGoal(DAILY_GOAL_STEP)}
+              disabled={dailyGoalMinutes >= MAX_DAILY_GOAL}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-white/50 transition-colors hover:text-white disabled:opacity-20"
+              aria-label={t('progress.raiseGoal')}
+              title={t('progress.raiseGoal')}
+            >
+              <Plus size={13} />
+            </button>
+          </div>
+        </div>
+        <div
+          className="mt-2 h-px w-full overflow-hidden bg-white/10"
+          role="progressbar"
+          aria-label={t('progress.dailyGoal')}
+          aria-valuemin={0}
+          aria-valuemax={dailyGoalSeconds}
+          aria-valuenow={Math.min(progress.todaySeconds, dailyGoalSeconds)}
+        >
+          <motion.div
+            className="h-full bg-white/65"
+            animate={{ width: `${dailyGoalProgress}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+        </div>
       </div>
 
       {/* Recent sessions */}
