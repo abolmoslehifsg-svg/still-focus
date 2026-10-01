@@ -9,15 +9,6 @@ const TELEGRAM_URL = 'https://t.me/tenmanogod'
 export default function About() {
   const { t } = useI18n()
 
-  // Browsers (and toolbar popup blockers) can silently swallow a
-  // target="_blank" click. Fall back to navigating the current tab so the
-  // link always opens *somewhere* instead of doing nothing.
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault()
-    const win = window.open(TELEGRAM_URL, '_blank', 'noopener,noreferrer')
-    if (!win) window.location.href = TELEGRAM_URL
-  }
-
   return (
     <motion.section
       id="about"
@@ -37,7 +28,6 @@ export default function About() {
           target="_blank"
           rel="noopener noreferrer"
           draggable={false}
-          onClick={handleClick}
           className="text-[11px] uppercase tracking-[0.3em] text-white/55 transition-colors duration-300 hover:text-white sm:text-xs"
         >
           @tenmanogod
