@@ -36,6 +36,7 @@ const en = {
   'nav.closeMenu': 'Close menu',
   'nav.downloadPc': 'Download for Windows',
   'nav.phoneApp': 'Phone app',
+  'nav.downloads': 'Download',
 
   // Hero
   'hero.line1': 'ENTER YOUR FOCUS',
@@ -237,6 +238,7 @@ const fa: Record<StringKey, string> = {
   'nav.closeMenu': 'بستن منو',
   'nav.downloadPc': 'دانلود برای ویندوز',
   'nav.phoneApp': 'نسخه موبایل',
+  'nav.downloads': 'دانلود',
 
   // Hero
   'hero.line1': 'به تمرکزت بیا',

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Smartphone } from 'lucide-react'
 import About from './components/About'
 import FocusTimer from './components/FocusTimer'
 import Navigation from './components/Navigation'
@@ -16,10 +15,6 @@ import { useProgress, useSessions } from './hooks/useSessions'
 import { playCompletionChime, resumeAudio } from './audio/engine'
 import { MAX_CUSTOM_MINUTES } from './sounds'
 import { getReward, type Reward } from './rewards'
-
-const WINDOWS_DOWNLOAD_URL =
-  'https://github.com/abolmoslehifsg-svg/still-focus/releases/latest/download/Still-Setup.exe'
-const MOBILE_APP_URL = 'https://abolmoslehifsg-svg.github.io/still-focus/'
 
 export default function App() {
   const { value: i18nValue, locale, t } = useLocale()
@@ -178,28 +173,6 @@ export default function App() {
             >
               {t('hero.tagline')}
             </motion.p>
-
-            <motion.div
-              className="mb-12 flex flex-wrap items-center justify-center gap-3 sm:mb-16"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: inFocusMode ? 0 : 1, y: inFocusMode ? 8 : 0, height: inFocusMode ? 0 : 'auto' }}
-              transition={{ duration: 0.7, delay: inFocusMode ? 0 : 0.55 }}
-            >
-              <a
-                href={WINDOWS_DOWNLOAD_URL}
-                className="liquid-glass flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs text-white/90 transition-colors hover:text-white sm:text-sm"
-              >
-                <Download size={16} aria-hidden="true" />
-                {t('nav.downloadPc')}
-              </a>
-              <a
-                href={MOBILE_APP_URL}
-                className="liquid-glass flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs text-white/90 transition-colors hover:text-white sm:text-sm"
-              >
-                <Smartphone size={16} aria-hidden="true" />
-                {t('nav.phoneApp')}
-              </a>
-            </motion.div>
 
             <FocusTimer
               timeLeft={timeLeft}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Download, Menu, Smartphone, X } from 'lucide-react'
+import { ChevronDown, Download, Menu, Smartphone, X } from 'lucide-react'
 import { LOCALES } from '../i18n/messages'
 import { useI18n } from '../i18n/context'
 
@@ -15,6 +15,7 @@ interface NavigationProps {
 
 export default function Navigation({ dimmed }: NavigationProps) {
   const [open, setOpen] = useState(false)
+  const [downloadOpen, setDownloadOpen] = useState(false)
   const { t, locale, toggle } = useI18n()
   const links = [
     { label: t('nav.focus'), href: '#focus' },
@@ -50,25 +51,60 @@ export default function Navigation({ dimmed }: NavigationProps) {
           </a>
         ))}
 
-        <a
-          href={WINDOWS_DOWNLOAD_URL}
-          className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/85 transition-colors duration-300 hover:text-white"
-          aria-label={t('nav.downloadPc')}
-          title={t('nav.downloadPc')}
+        <div
+          className="relative"
+          onMouseEnter={() => setDownloadOpen(true)}
+          onMouseLeave={() => setDownloadOpen(false)}
+          onFocus={() => setDownloadOpen(true)}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setDownloadOpen(false)
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setDownloadOpen(false)
+          }}
         >
-          <Download size={14} aria-hidden="true" />
-          {t('nav.downloadPc')}
-        </a>
-
-        <a
-          href={MOBILE_APP_URL}
-          className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/85 transition-colors duration-300 hover:text-white"
-          aria-label={t('nav.phoneApp')}
-          title={t('nav.phoneApp')}
-        >
-          <Smartphone size={14} aria-hidden="true" />
-          {t('nav.phoneApp')}
-        </a>
+          <button
+            type="button"
+            onClick={() => setDownloadOpen((value) => !value)}
+            className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/85 transition-colors duration-300 hover:text-white"
+            aria-expanded={downloadOpen}
+            aria-haspopup="true"
+          >
+            <Download size={14} aria-hidden="true" />
+            {t('nav.downloads')}
+            <ChevronDown size={13} aria-hidden="true" />
+          </button>
+          <AnimatePresence>
+            {downloadOpen && (
+              <motion.div
+                className="liquid-glass absolute right-0 top-full z-50 flex min-w-52 flex-col gap-1 rounded-xl p-2"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.16 }}
+              >
+                <a
+                  href={WINDOWS_DOWNLOAD_URL}
+                  onClick={() => setDownloadOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Download size={15} aria-hidden="true" />
+                  {t('nav.downloadPc')}
+                </a>
+                <a
+                  href={MOBILE_APP_URL}
+                  onClick={() => setDownloadOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Smartphone size={15} aria-hidden="true" />
+                  {t('nav.phoneApp')}
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <button
           type="button"
@@ -83,25 +119,47 @@ export default function Navigation({ dimmed }: NavigationProps) {
 
       {/* Mobile: language toggle + hamburger */}
       <div className="flex items-center gap-2.5 md:hidden">
-        <a
-          href={WINDOWS_DOWNLOAD_URL}
-          className="liquid-glass flex h-10 items-center justify-center gap-1.5 rounded-full px-3 text-[10px] uppercase tracking-[0.08em] text-white/80 transition-colors duration-300 hover:text-white"
-          aria-label={t('nav.downloadPc')}
-          title={t('nav.downloadPc')}
-        >
-          <Download size={14} aria-hidden="true" />
-          PC
-        </a>
-
-        <a
-          href={MOBILE_APP_URL}
-          className="liquid-glass flex h-10 items-center justify-center gap-1.5 rounded-full px-3 text-[10px] uppercase tracking-[0.08em] text-white/80 transition-colors duration-300 hover:text-white"
-          aria-label={t('nav.phoneApp')}
-          title={t('nav.phoneApp')}
-        >
-          <Smartphone size={14} aria-hidden="true" />
-          {locale === 'fa' ? 'موبایل' : 'Mobile'}
-        </a>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setDownloadOpen((value) => !value)}
+            className="liquid-glass flex h-10 items-center justify-center gap-1.5 rounded-full px-3 text-[10px] uppercase tracking-[0.08em] text-white/80 transition-colors duration-300 hover:text-white"
+            aria-expanded={downloadOpen}
+            aria-haspopup="true"
+          >
+            <Download size={14} aria-hidden="true" />
+            {t('nav.downloads')}
+            <ChevronDown size={13} aria-hidden="true" />
+          </button>
+          <AnimatePresence>
+            {downloadOpen && (
+              <motion.div
+                className="liquid-glass absolute right-0 top-full z-50 flex min-w-52 flex-col gap-1 rounded-xl p-2"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.16 }}
+              >
+                <a
+                  href={WINDOWS_DOWNLOAD_URL}
+                  onClick={() => setDownloadOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Download size={15} aria-hidden="true" />
+                  {t('nav.downloadPc')}
+                </a>
+                <a
+                  href={MOBILE_APP_URL}
+                  onClick={() => setDownloadOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Smartphone size={15} aria-hidden="true" />
+                  {t('nav.phoneApp')}
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <button
           type="button"
