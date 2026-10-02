@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
+import { Download, Menu, Smartphone, X } from 'lucide-react'
 import { LOCALES } from '../i18n/messages'
 import { useI18n } from '../i18n/context'
+
+const WINDOWS_DOWNLOAD_URL =
+  'https://github.com/abolmoslehifsg-svg/still-focus/releases/latest/download/Still-Setup.exe'
+const MOBILE_APP_URL = 'https://abolmoslehifsg-svg.github.io/still-focus/'
 
 interface NavigationProps {
   /** When true the nav fades toward near-zero opacity (focus mode). */
@@ -46,6 +50,26 @@ export default function Navigation({ dimmed }: NavigationProps) {
           </a>
         ))}
 
+        <a
+          href={WINDOWS_DOWNLOAD_URL}
+          className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/85 transition-colors duration-300 hover:text-white"
+          aria-label={t('nav.downloadPc')}
+          title={t('nav.downloadPc')}
+        >
+          <Download size={14} aria-hidden="true" />
+          {t('nav.downloadPc')}
+        </a>
+
+        <a
+          href={MOBILE_APP_URL}
+          className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/85 transition-colors duration-300 hover:text-white"
+          aria-label={t('nav.phoneApp')}
+          title={t('nav.phoneApp')}
+        >
+          <Smartphone size={14} aria-hidden="true" />
+          {t('nav.phoneApp')}
+        </a>
+
         <button
           type="button"
           onClick={toggle}
@@ -59,6 +83,26 @@ export default function Navigation({ dimmed }: NavigationProps) {
 
       {/* Mobile: language toggle + hamburger */}
       <div className="flex items-center gap-2.5 md:hidden">
+        <a
+          href={WINDOWS_DOWNLOAD_URL}
+          className="liquid-glass flex h-10 items-center justify-center gap-1.5 rounded-full px-3 text-[10px] uppercase tracking-[0.08em] text-white/80 transition-colors duration-300 hover:text-white"
+          aria-label={t('nav.downloadPc')}
+          title={t('nav.downloadPc')}
+        >
+          <Download size={14} aria-hidden="true" />
+          PC
+        </a>
+
+        <a
+          href={MOBILE_APP_URL}
+          className="liquid-glass flex h-10 items-center justify-center gap-1.5 rounded-full px-3 text-[10px] uppercase tracking-[0.08em] text-white/80 transition-colors duration-300 hover:text-white"
+          aria-label={t('nav.phoneApp')}
+          title={t('nav.phoneApp')}
+        >
+          <Smartphone size={14} aria-hidden="true" />
+          {locale === 'fa' ? 'موبایل' : 'Mobile'}
+        </a>
+
         <button
           type="button"
           onClick={toggle}

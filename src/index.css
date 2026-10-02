@@ -14,7 +14,7 @@
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
-  src: url('/fonts/EBGaramond-Variable.woff2') format('woff2-variations');
+  src: url('../public/fonts/EBGaramond-Variable.woff2') format('woff2-variations');
 }
 
 /* Vazirmatn — self-hosted Persian/Arabic font (SIL Open Font Licence 1.1) */
@@ -23,7 +23,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
+  src: url('../public/fonts/Vazirmatn-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -31,7 +31,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
+  src: url('../public/fonts/Vazirmatn-Bold.woff2') format('woff2');
 }
 
 html,

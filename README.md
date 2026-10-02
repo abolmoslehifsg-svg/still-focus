@@ -1,73 +1,75 @@
-# Still — Focus & Relax
+# Still | Focus & Relax
 
-A full-screen cinematic focus and relaxation app. A minimal, immersive digital
-sanctuary for concentration, studying, reading, working, meditation, or simply
-relaxing.
+**[Open the live app / ورود به نسخه آنلاین →](https://abolmoslehifsg-svg.github.io/still-focus/)**
 
-Built with **React + TypeScript + Vite**, **Tailwind CSS**, **Framer Motion**,
-and **lucide-react**.
+**[Download for Windows / دانلود نسخه ویندوز →](https://github.com/abolmoslehifsg-svg/still-focus/releases/latest/download/Still-Setup.exe)**
 
-## Getting started
+A quiet, cinematic web app for deep focus and relaxation.  
+Built with a minimal dark aesthetic, ambient layered sounds, and a clean focus timer.
+
+یک اپ وب آروم و سینمایی برای تمرکز عمیق و آرامش.  
+با طراحی تاریک و مینیمال، صداهای محیطی لایه‌ای و تایمر تمرکز ساخته شده.
+
+---
+
+## Features | ویژگی‌ها
+
+- Focus timer with multiple presets (15 / 25 / 45 / 60 / 90 minutes + custom)  
+  تایمر تمرکز با گزینه‌های مختلف (۱۵ / ۲۵ / ۴۵ / ۶۰ / ۹۰ دقیقه + دلخواه)
+
+- Layered ambient sounds (Rain, Fireplace, Ocean, Forest, Train, Café, White Noise, Brown Noise)  
+  صداهای محیطی لایه‌ای (باران، شومینه، اقیانوس، جنگل، قطار، کافه، نویز سفید و قهوه‌ای)
+
+- Upload your own sound  
+  امکان آپلود صدای شخصی
+
+- Progress tracking (daily, weekly, all-time, streak)  
+  پیگیری پیشرفت (روزانه، هفتگی، کل زمان، استریک)
+
+- Daily focus goal  
+  هدف تمرکز روزانه
+
+- Bilingual support (English & فارسی)  
+  پشتیبانی دو زبانه
+
+- Fully client-side — your audio stays on your device  
+  کاملاً سمت کاربر — صداها روی دستگاه خودت می‌مونن
+
+- Windows desktop app with an installable setup file  
+  نسخه دسکتاپ ویندوز با فایل نصب
+
+---
+
+## Tech Stack | تکنولوژی‌ها
+
+- React + TypeScript  
+- Vite  
+- Tailwind CSS  
+- Web Audio API
+
+---
+
+## Getting Started | راه‌اندازی
 
 ```bash
+git clone https://github.com/abolmoslehifsg-svg/still-focus.git
+cd still-focus
 npm install
 npm run dev
 ```
 
-Then open the printed local URL.
+---
 
-> Node.js 18+ is required. If `npm` is not found, install Node.js from
-> https://nodejs.org and restart your terminal.
+## About | درباره
 
-## What it does
+Still is a personal project focused on creating a calm digital space for concentration and mindfulness.  
+Designed and developed by **Abolfazl Moslehi**.
 
-- Choose a focus duration (15 / 25 / 45 / 60 minutes, or a custom value)
-- Start, pause, resume, and reset a countdown timer
-- Pick from 8 ambient sound categories, or upload your own audio file
-- Adjust ambient volume, or mute without stopping the session
-- A soft, glass-like chime sounds once when the session completes
-- Focus mode gently fades the navigation and hero while a session runs
-- A subtle circular progress ring tracks the session
+استیل یک پروژه شخصی برای ساخت فضای دیجیتال آروم برای تمرکز و ذهن‌آگاهی است.  
+طراحی و توسعه توسط **ابوالفضل مصلحی**.
 
-## Audio architecture
+---
 
-All audio flows through `src/audio/engine.ts`:
+## License
 
-- A single shared `AudioContext`, created lazily after the first user gesture
-  to respect browser autoplay restrictions.
-- Built-in sounds and uploaded files play through HTML5 `<audio>` elements,
-  routed through a shared master gain so one volume control governs everything.
-- Built-in sounds in `src/sounds.ts` currently have empty `src` values, so the
-  engine falls back to procedurally synthesized ambient textures (Web Audio).
-  **Insert real audio URLs in `src/sounds.ts` and file playback takes over
-  automatically — no component changes needed.**
-- Uploaded files are loaded via `URL.createObjectURL` and stay entirely local.
-  Nothing is sent to a server.
-
-## Project structure
-
-```
-still-focus/
-├── index.html
-├── package.json
-├── postcss.config.js
-├── tailwind.config.js
-├── tsconfig.json
-├── vite.config.ts
-├── public/
-│   └── still.svg
-└── src/
-    ├── main.tsx
-    ├── App.tsx
-    ├── index.css
-    ├── sounds.ts
-    ├── audio/
-    │   └── engine.ts
-    └── components/
-        ├── VideoBackground.tsx
-        ├── Navigation.tsx
-        ├── StaggeredFade.tsx
-        ├── ProgressRing.tsx
-        ├── FocusTimer.tsx
-        └── SoundPanel.tsx
-```
+MIT

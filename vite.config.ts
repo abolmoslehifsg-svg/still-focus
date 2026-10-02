@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  // Serve from the GitHub Pages subpath: <user>.github.io/still-focus/
-  base: '/still-focus/',
+  // Relative assets work both under the GitHub Pages subpath and in Electron.
+  base: './',
   plugins: [react()],
   server: {
     host: true,

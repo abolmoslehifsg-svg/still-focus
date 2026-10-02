@@ -34,6 +34,8 @@ const en = {
   'nav.brand': 'Still',
   'nav.openMenu': 'Open menu',
   'nav.closeMenu': 'Close menu',
+  'nav.downloadPc': 'Download for Windows',
+  'nav.phoneApp': 'Phone app',
 
   // Hero
   'hero.line1': 'ENTER YOUR FOCUS',
@@ -187,7 +189,7 @@ const en = {
   'sound.brown-noise': 'Brown Noise',
 
   // About
-  'about.developedBy': 'developed by aboll',
+  'about.developedBy': 'developed by Abolfazl Moslehi',
 
   // Progress
   'progress.title': 'Progress',
@@ -233,6 +235,8 @@ const fa: Record<StringKey, string> = {
   'nav.brand': 'استیل',
   'nav.openMenu': 'باز کردن منو',
   'nav.closeMenu': 'بستن منو',
+  'nav.downloadPc': 'دانلود برای ویندوز',
+  'nav.phoneApp': 'نسخه موبایل',
 
   // Hero
   'hero.line1': 'به تمرکزت بیا',
@@ -386,7 +390,7 @@ const fa: Record<StringKey, string> = {
   'sound.brown-noise': 'نویز قهوه‌ای',
 
   // About
-  'about.developedBy': 'ساخته‌ی aboll',
+  'about.developedBy': 'ساخته‌ی ابوالفضل مصلحی',
 
   // Progress
   'progress.title': 'پیشرفت',
