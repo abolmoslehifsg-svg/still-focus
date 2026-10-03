@@ -18,6 +18,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # npm 11 (Node 24) blocks install scripts by default; Electron needs its
+      # postinstall to download the runtime binary.
+      - run: node node_modules/electron/install.js
       - run: npm run desktop:build
       - uses: softprops/action-gh-release@v2
         with:
