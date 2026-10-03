@@ -31,6 +31,7 @@
   "build": {
     "appId": "com.still.focus",
     "productName": "Still",
+    "icon": "build/icon.png",
     "directories": {
       "output": "release"
     },
@@ -41,7 +42,8 @@
     ],
     "win": {
       "target": "nsis",
-      "artifactName": "Still-Setup.exe"
+      "artifactName": "Still-Setup.exe",
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
